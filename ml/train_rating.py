@@ -26,7 +26,7 @@ ROOT = Path(__file__).parent.parent
 DATA = ROOT / "etl" / "data"
 OUT = ROOT / "ml" / "out"
 
-YEARS = range(2000, 2026)
+YEARS = range(2000, 2027)
 
 FEATURES = [
     "first_in_pct", "first_won_pct", "second_won_pct", "ace_rate", "df_rate",

@@ -5,7 +5,8 @@ import { ErrorNote, Layout, MatchRow, RankSparkline, RatingBadge, Spinner, WinLo
 import { ageFromDob, flagEmoji, formatDate } from "../lib";
 
 const SURFACES = ["Hard", "Clay", "Grass", "Carpet"];
-const YEARS = Array.from({ length: 26 }, (_, i) => 2025 - i);
+const THIS_YEAR = new Date().getFullYear();
+const YEARS = Array.from({ length: THIS_YEAR - 1999 }, (_, i) => THIS_YEAR - i);
 
 export default function Player() {
   const { id = "" } = useParams();

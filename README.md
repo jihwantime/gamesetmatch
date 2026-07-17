@@ -1,6 +1,6 @@
 # 🎾 GameSetMatch
 
-Match history site for ATP tennis (2000–2025), built on
+Match history site for ATP tennis (2000–present), built on
 **Cloudflare Workers + D1**. Search any tour-level player, browse their match history with
 per-match stats, and see an ML-derived **0–10 performance rating** for every player in every
 match.
@@ -15,10 +15,16 @@ mid-range. Details, evaluation, and sanity checks: [ml/MODEL_CARD.md](ml/MODEL_C
 
 | | |
 | --- | --- |
-| Matches | 77,850 (2000–2025, tour-level) |
-| Rated performances | 142,072 |
-| Players | 2,735 |
+| Matches | 79,598 (2000 → current season, tour-level) |
+| Rated performances | 144,444 |
+| Players | 2,793 |
 | Holdout AUC | 0.9875 (see model card for why that's the point) |
+
+**Data freshness**: the Sackmann archive (rich per-match stats) is the primary source;
+`etl/fetch_recent.py` tops up the current season from
+[tennis-data.co.uk](http://www.tennis-data.co.uk) (updated within days of play), matching
+players onto archive ids and deduplicating overlap. Topped-up matches have scores and
+ranks but no serve stats, so they appear unrated ("—") until the archive catches up.
 
 ## Stack
 
@@ -38,6 +44,7 @@ npm install
 # seed the local D1 database (downloads dataset, builds seed SQL, applies it)
 python3 -m venv .venv && .venv/bin/pip install -r etl/requirements.txt
 .venv/bin/python etl/download.py
+.venv/bin/python etl/fetch_recent.py  # current-season top-up from tennis-data.co.uk
 .venv/bin/python ml/train_rating.py   # optional but recommended: compute ratings
 .venv/bin/python etl/build_seed.py
 npm run db:reset

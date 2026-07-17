@@ -17,9 +17,9 @@ DATA = ROOT / "etl" / "data"
 OUT = ROOT / "etl" / "out"
 RATINGS_CSV = ROOT / "ml" / "out" / "ratings.csv"
 
-YEARS = range(2000, 2026)
+YEARS = range(2000, 2027)
 MAX_RANK = 300          # rankings kept per week (leaderboard + sparklines)
-ROWS_PER_INSERT = 500
+ROWS_PER_INSERT = 250  # keep each INSERT under SQLite's max statement length
 ROWS_PER_FILE = 100_000
 
 MATCH_COLS = [
@@ -70,6 +70,10 @@ def write_inserts(table: str, columns: list[str], rows: list[tuple], stem: str) 
 
 def load_matches() -> pd.DataFrame:
     frames = [pd.read_csv(DATA / f"atp_matches_{y}.csv", low_memory=False) for y in YEARS]
+    recent = DATA / "recent_matches.csv"  # tennis-data.co.uk top-up from fetch_recent.py
+    if recent.exists():
+        frames.append(pd.read_csv(recent, low_memory=False))
+        print(f"including {recent.name}: {len(frames[-1])} current-season matches")
     df = pd.concat(frames, ignore_index=True)
 
     if RATINGS_CSV.exists():

@@ -107,7 +107,11 @@ export function Layout({ children, hideSearch = false }: { children: React.React
         <a className="underline hover:text-slate-400" href="https://github.com/JeffSackmann/tennis_atp">
           Jeff Sackmann's tennis_atp
         </a>{" "}
-        (CC BY-NC-SA 4.0) · ATP tour-level matches 2000–2025
+        (CC BY-NC-SA 4.0) with current-season results from{" "}
+        <a className="underline hover:text-slate-400" href="http://www.tennis-data.co.uk">
+          tennis-data.co.uk
+        </a>{" "}
+        · ATP tour-level matches since 2000
       </footer>
     </div>
   );

@@ -11,7 +11,7 @@ import requests
 BASE = "https://huggingface.co/datasets/Aneeshers/tennis-sackmann-archive/resolve/main/atp"
 DATA_DIR = Path(__file__).parent / "data"
 
-YEARS = range(2000, 2026)
+YEARS = range(2000, 2027)
 
 FILES = (
     ["atp_players.csv"]

@@ -52,7 +52,14 @@ indistinguishable at the top, which is reassuring.
 
 ## Limitations
 
-- Walkovers and matches without recorded stats (mostly early-2000s Davis Cup) are unrated.
+- **No stroke-level features.** Forehand/backhand quality, rally length, and shot
+  placement aren't in any public box score — that telemetry (Hawk-Eye/TennisViz) is
+  licensed, not published. The serve/return line is the complete public stat record of a
+  match. The crowdsourced [Match Charting Project](https://github.com/JeffSackmann/tennis_MatchChartingProject)
+  has shot-by-shot charts for a subset of notable matches and could enrich ratings for
+  those matches in the future.
+- Walkovers and matches without recorded stats are unrated — this includes current-season
+  matches sourced from tennis-data.co.uk (scores/ranks only) until the archive catches up.
 - Opponent rank is the only context feature; era and surface effects are absorbed by the
   stat features themselves.
 - The percentile mapping is global (all matches 2000–2025), not per-surface or per-era.
