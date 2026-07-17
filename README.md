@@ -5,6 +5,21 @@ An [op.gg](https://op.gg)-style match history site for ATP tennis (2000–2025),
 per-match stats, and see an ML-derived **0–10 performance rating** for every player in every
 match.
 
+## The rating
+
+Every player in every completed match gets a **performance rating**: a gradient-boosting
+model reads the serve/return stat line (plus opponent rank) and estimates how likely that
+performance was to win; the probability's percentile becomes the 0–10 score. 5.0 is a
+median tour-level performance, 9+ is top-decile, and a tight five-set loss still scores
+mid-range. Details, evaluation, and sanity checks: [ml/MODEL_CARD.md](ml/MODEL_CARD.md).
+
+| | |
+| --- | --- |
+| Matches | 77,850 (2000–2025, tour-level) |
+| Rated performances | 142,072 |
+| Players | 2,735 |
+| Holdout AUC | 0.9875 (see model card for why that's the point) |
+
 ## Stack
 
 - **Database**: Cloudflare D1 (SQLite) — players, matches, weekly rankings
@@ -23,6 +38,7 @@ npm install
 # seed the local D1 database (downloads dataset, builds seed SQL, applies it)
 python3 -m venv .venv && .venv/bin/pip install -r etl/requirements.txt
 .venv/bin/python etl/download.py
+.venv/bin/python ml/train_rating.py   # optional but recommended: compute ratings
 .venv/bin/python etl/build_seed.py
 npm run db:reset
 
@@ -30,6 +46,9 @@ npm run db:reset
 npm run dev
 npm run dev:web
 ```
+
+Deploying to real Cloudflare (login, `d1 create`, remote seed, `wrangler deploy`):
+see [DEPLOY.md](DEPLOY.md).
 
 ## Project layout
 
