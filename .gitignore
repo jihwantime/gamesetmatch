@@ -1,0 +1,13 @@
+node_modules/
+dist/
+.wrangler/
+.dev.vars
+
+# raw dataset downloads and generated seed SQL (rebuildable via etl/)
+etl/data/
+etl/out/
+ml/out/
+
+__pycache__/
+.venv/
+.DS_Store

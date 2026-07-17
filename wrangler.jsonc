@@ -1,0 +1,23 @@
+{
+  // Cloudflare Worker config — local-first development.
+  // `wrangler dev` emulates the Worker and D1 locally (SQLite under .wrangler/).
+  // database_id is a placeholder until the real D1 database is created at deploy
+  // time (see DEPLOY.md, milestone M6).
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "gamesetmatch",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-07-01",
+  "assets": {
+    "directory": "web/dist",
+    "binding": "ASSETS",
+    "not_found_handling": "single-page-application",
+    "run_worker_first": ["/api/*"]
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "gamesetmatch",
+      "database_id": "00000000-0000-0000-0000-000000000000"
+    }
+  ]
+}

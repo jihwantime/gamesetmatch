@@ -1,0 +1,26 @@
+{
+  "name": "gamesetmatch",
+  "version": "0.1.0",
+  "private": true,
+  "description": "op.gg-style match history site for ATP tennis, backed by Cloudflare D1",
+  "workspaces": [
+    "web"
+  ],
+  "scripts": {
+    "dev": "wrangler dev",
+    "dev:web": "npm run dev --workspace web",
+    "build": "npm run build --workspace web",
+    "typecheck": "tsc --noEmit && npm run typecheck --workspace web",
+    "db:schema": "wrangler d1 execute gamesetmatch --local --file=schema.sql",
+    "db:reset": "node scripts/db-reset.mjs",
+    "deploy": "npm run build && wrangler deploy"
+  },
+  "dependencies": {
+    "hono": "^4.6.0"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^5.20260714.1",
+    "typescript": "^5.6.0",
+    "wrangler": "^4.0.0"
+  }
+}
