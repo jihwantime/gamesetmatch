@@ -1,6 +1,6 @@
 # 🎾 GameSetMatch
 
-An [op.gg](https://op.gg)-style match history site for ATP tennis (2000–2025), built on
+Match history site for ATP tennis (2000–2025), built on
 **Cloudflare Workers + D1**. Search any tour-level player, browse their match history with
 per-match stats, and see an ML-derived **0–10 performance rating** for every player in every
 match.
