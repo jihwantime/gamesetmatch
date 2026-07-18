@@ -1,12 +1,13 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import { api, type MatchPage, type Profile, type RankPoint } from "../api";
+import { api, type MatchListItem, type MatchPage, type Profile, type RankPoint } from "../api";
 import {
   ErrorNote,
   FilterSelect,
+  LastTen,
   Layout,
   MatchRow,
-  RankSparkline,
+  RankHistoryPanel,
   RatingBadge,
   Spinner,
   WinLossBar,
@@ -22,6 +23,8 @@ export default function Player() {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [history, setHistory] = useState<RankPoint[]>([]);
   const [matchPage, setMatchPage] = useState<MatchPage | null>(null);
+  const [recent, setRecent] = useState<MatchListItem[]>([]);
+  const [showRank, setShowRank] = useState(false);
   const [page, setPage] = useState(1);
   const [surface, setSurface] = useState("");
   const [year, setYear] = useState("");
@@ -33,8 +36,11 @@ export default function Player() {
     setPage(1);
     setSurface("");
     setYear("");
+    setShowRank(false);
+    setRecent([]);
     api.player(id).then(setProfile).catch(() => setError("Player not found."));
     api.rankHistory(id).then((r) => setHistory(r.history)).catch(() => {});
+    api.playerMatches(id, 1).then((r) => setRecent(r.matches)).catch(() => {});
   }, [id]);
 
   useEffect(() => {
@@ -94,7 +100,7 @@ export default function Player() {
               </span>
             </div>
           </div>
-          <div className="flex items-center gap-6 rounded-2xl bg-ink/60 px-6 py-4">
+          <div className="flex flex-wrap items-center gap-6 rounded-2xl bg-ink/60 px-6 py-4">
             <HeaderStat label="W–L" value={`${profile.wins}–${profile.losses}`} />
             <Divider />
             <HeaderStat label="Titles" value={String(profile.titles ?? 0)} />
@@ -110,6 +116,25 @@ export default function Player() {
           </div>
         </div>
       </div>
+
+      {/* rank history: standalone toggle at the top */}
+      {history.length >= 2 && (
+        <div className="mt-4">
+          <button
+            onClick={() => setShowRank((s) => !s)}
+            className={`rounded-full px-5 py-2 font-display text-base font-semibold transition ${
+              showRank ? "bg-win text-black" : "bg-card text-slate-300 hover:bg-card-2 hover:text-white"
+            }`}
+          >
+            📈 Rank History {showRank ? "▴" : "▾"}
+          </button>
+          {showRank && (
+            <div className="mt-3">
+              <RankHistoryPanel history={history} />
+            </div>
+          )}
+        </div>
+      )}
 
       <div className="mt-6 grid gap-6 lg:grid-cols-[300px_1fr]">
         {/* sidebar */}
@@ -142,10 +167,6 @@ export default function Player() {
             </div>
           </section>
           <section className="rounded-3xl bg-card p-5">
-            <h2 className="mb-4 font-display text-xl font-semibold text-white">Ranking History</h2>
-            <RankSparkline history={history} />
-          </section>
-          <section className="rounded-3xl bg-card p-5">
             <h2 className="mb-4 font-display text-xl font-semibold text-white">By Surface</h2>
             <div className="space-y-3">
               {profile.surfaces.map((s) => (
@@ -153,6 +174,7 @@ export default function Player() {
               ))}
             </div>
           </section>
+          <LastTen matches={recent} />
         </div>
 
         {/* match list */}

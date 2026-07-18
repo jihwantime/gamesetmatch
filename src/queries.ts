@@ -125,7 +125,7 @@ export async function getPlayerMatches(
 export async function getRankHistory(db: D1Database, id: number) {
   const { results } = await db
     .prepare(
-      `SELECT ranking_date, rank FROM rankings
+      `SELECT ranking_date, rank, points FROM rankings
        WHERE player_id = ?1 ORDER BY ranking_date`
     )
     .bind(id)

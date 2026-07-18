@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { api, type LeaderboardEntry } from "../api";
 import { Layout, RatingBadge, SearchBox } from "../components";
@@ -7,6 +7,8 @@ import { flagEmoji, formatDate } from "../lib";
 export default function Home() {
   const [top, setTop] = useState<LeaderboardEntry[]>([]);
   const [date, setDate] = useState<number | null>(null);
+  const [revealed, setRevealed] = useState(false);
+  const topRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     api.leaderboard().then((r) => {
@@ -15,13 +17,28 @@ export default function Home() {
     }).catch(() => {});
   }, []);
 
+  // reveal the top-10 only once the user scrolls it into view
+  useEffect(() => {
+    if (top.length === 0 || !topRef.current) return;
+    const obs = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setRevealed(true);
+          obs.disconnect();
+        }
+      },
+      { threshold: 0.2 }
+    );
+    obs.observe(topRef.current);
+    return () => obs.disconnect();
+  }, [top.length]);
+
   return (
     <Layout hideSearch>
-      <div className="flex flex-col items-center pt-16 text-center">
-        <h1 className="font-display text-7xl font-bold tracking-wide text-white">
-          🎾 GameSetMatch
-        </h1>
-        <p className="mt-3 max-w-md text-slate-400">
+      {/* hero fills the viewport so the top-10 sits below the fold */}
+      <div className="flex min-h-[calc(100vh-160px)] flex-col items-center justify-center text-center">
+        <img src="/ball.svg" alt="GameSetMatch" className="h-28 w-28" />
+        <p className="mt-6 max-w-md text-slate-400">
           Match histories, stats, and ML performance ratings for every ATP
           tour-level player since 2000.
         </p>
@@ -31,10 +48,20 @@ export default function Home() {
         <p className="mt-3 text-xs text-slate-600">
           Try “Alcaraz”, “Federer”, or “Del Potro”
         </p>
+        {top.length > 0 && (
+          <div className="mt-16 animate-bounce text-slate-600" aria-hidden>
+            ▾
+          </div>
+        )}
       </div>
 
       {top.length > 0 && (
-        <div className="mx-auto mt-16 max-w-2xl">
+        <div
+          ref={topRef}
+          className={`mx-auto max-w-2xl pb-16 transition-all duration-700 ease-out ${
+            revealed ? "translate-y-0 opacity-100" : "translate-y-10 opacity-0"
+          }`}
+        >
           <div className="mb-3 flex items-baseline justify-between">
             <h2 className="font-display text-2xl font-semibold tracking-wide text-white">
               ATP Top 10 <span className="text-base text-slate-500">· {formatDate(date)}</span>

@@ -58,7 +58,7 @@ export type MatchPage = {
   matches: MatchListItem[];
 };
 
-export type RankPoint = { ranking_date: number; rank: number };
+export type RankPoint = { ranking_date: number; rank: number; points: number | null };
 
 export type MatchDetail = {
   id: number;
