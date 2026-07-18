@@ -31,7 +31,7 @@ export default function MatchDetail() {
   const rows: { label: string; w: string; l: string; wVal: number | null; lVal: number | null }[] = hasStats
     ? [
         stat("Aces", match.w_ace, match.l_ace),
-        stat("Double faults", match.w_df, match.l_df, true),
+        stat("Double faults", match.w_df, match.l_df),
         pctStat("1st serve in", match.w_1stIn, match.w_svpt, match.l_1stIn, match.l_svpt),
         pctStat("1st serve won", match.w_1stWon, match.w_1stIn, match.l_1stWon, match.l_1stIn),
         pctStat(
@@ -51,23 +51,23 @@ export default function MatchDetail() {
           <div className="text-sm text-slate-400">
             {match.tourney_name}
             {match.tourney_level && <> · {LEVEL_NAMES[match.tourney_level] ?? match.tourney_level}</>}
-            {match.surface && <> · {match.surface}</>}
+            {match.surface && <> · <span className="text-sky-400">{match.surface}</span></>}
           </div>
           <div className="mt-1 text-xs text-slate-500">
             {ROUND_NAMES[match.round] ?? match.round} · {formatDate(match.tourney_date)}
-            {match.minutes != null && <> · {Math.floor(match.minutes / 60)}h {match.minutes % 60}m</>}
+            {match.minutes != null && <> · 🕐 {Math.floor(match.minutes / 60)}:{String(match.minutes % 60).padStart(2, "0")}</>}
           </div>
         </div>
 
         {/* scoreboard */}
-        <div className="mt-6 grid grid-cols-[1fr_auto_1fr] items-center gap-4 rounded-xl border border-slate-800 bg-slate-900 p-6">
+        <div className="mt-6 grid grid-cols-[1fr_auto_1fr] items-center gap-4 rounded-3xl bg-card p-8">
           <PlayerSide
             id={match.winner_id} name={match.winner_name} ioc={match.winner_ioc}
             rank={match.winner_rank} rating={match.winner_rating} won
           />
           <div className="text-center">
-            <div className="text-2xl font-bold tabular-nums text-white">{match.score ?? "—"}</div>
-            <div className="mt-1 text-[10px] uppercase tracking-wide text-slate-500">best of {match.best_of}</div>
+            <div className="font-display text-4xl font-bold tabular-nums text-white">{match.score ?? "—"}</div>
+            <div className="mt-1 text-[10px] uppercase tracking-wider text-slate-500">best of {match.best_of}</div>
           </div>
           <PlayerSide
             id={match.loser_id} name={match.loser_name} ioc={match.loser_ioc}
@@ -86,8 +86,8 @@ export default function MatchDetail() {
 
         {/* stat comparison */}
         {hasStats ? (
-          <section className="mt-6 rounded-xl border border-slate-800 bg-slate-900 p-6">
-            <h2 className="mb-4 text-center text-sm font-semibold text-slate-300">Match stats</h2>
+          <section className="mt-6 rounded-3xl bg-card p-8">
+            <h2 className="mb-5 text-center font-display text-2xl font-semibold text-white">Match Stats</h2>
             <div className="space-y-4">
               {rows.map((r) => (
                 <StatBarRow key={r.label} {...r} />
@@ -108,7 +108,7 @@ function minus(a: number | null, b: number | null): number | null {
   return a == null || b == null ? null : a - b;
 }
 
-function stat(label: string, w: number | null, l: number | null, lowerIsBetter = false) {
+function stat(label: string, w: number | null, l: number | null) {
   const max = Math.max(w ?? 0, l ?? 0, 1);
   return {
     label,
@@ -140,10 +140,10 @@ function StatBarRow({ label, w, l, wVal, lVal }: { label: string; w: string; l: 
         <span className="text-right tabular-nums text-slate-200">{l}</span>
       </div>
       <div className="grid grid-cols-2 gap-[2px]">
-        <div className="flex h-2 justify-end overflow-hidden rounded-l-full bg-slate-800">
+        <div className="flex h-2 justify-end overflow-hidden rounded-l-full bg-white/5">
           <div style={{ width: `${wVal ?? 0}%`, background: WIN_COLOR }} className="rounded-l-full" />
         </div>
-        <div className="flex h-2 overflow-hidden rounded-r-full bg-slate-800">
+        <div className="flex h-2 overflow-hidden rounded-r-full bg-white/5">
           <div style={{ width: `${lVal ?? 0}%`, background: LOSS_COLOR }} className="rounded-r-full" />
         </div>
       </div>
@@ -155,12 +155,19 @@ function PlayerSide({ id, name, ioc, rank, rating, won = false }: {
   id: number; name: string; ioc: string | null; rank: number | null; rating: number | null; won?: boolean;
 }) {
   return (
-    <div className={`text-center ${won ? "" : "opacity-90"}`}>
-      {won && <div className="mb-1 text-[10px] font-bold uppercase tracking-wider text-[#3b82f6]">Winner</div>}
-      {!won && <div className="mb-1 text-[10px] font-bold uppercase tracking-wider text-[#ef4444]">Loser</div>}
-      <Link to={`/player/${id}`} className="text-lg font-semibold text-white hover:underline">
-        {flagEmoji(ioc)} {name}
-      </Link>
+    <div className="text-center">
+      <div
+        className={`mb-1.5 inline-block rounded-full px-3 py-0.5 font-display text-xs font-bold uppercase tracking-wider ${
+          won ? "bg-win text-black" : "bg-loss text-black"
+        }`}
+      >
+        {won ? "Winner" : "Loser"}
+      </div>
+      <div>
+        <Link to={`/player/${id}`} className="font-display text-2xl font-semibold text-white hover:underline">
+          {flagEmoji(ioc)} {name}
+        </Link>
+      </div>
       <div className="mt-1 text-xs text-slate-500">{rank != null ? `Rank #${rank}` : "Unranked"}</div>
       <div className="mt-2"><RatingBadge rating={rating} /></div>
     </div>

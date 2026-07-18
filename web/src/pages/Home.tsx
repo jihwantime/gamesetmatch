@@ -18,7 +18,7 @@ export default function Home() {
   return (
     <Layout hideSearch>
       <div className="flex flex-col items-center pt-16 text-center">
-        <h1 className="text-5xl font-extrabold tracking-tight text-white">
+        <h1 className="font-display text-7xl font-bold tracking-wide text-white">
           🎾 GameSetMatch
         </h1>
         <p className="mt-3 max-w-md text-slate-400">
@@ -36,21 +36,21 @@ export default function Home() {
       {top.length > 0 && (
         <div className="mx-auto mt-16 max-w-2xl">
           <div className="mb-3 flex items-baseline justify-between">
-            <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-400">
-              ATP Top 10 · {formatDate(date)}
+            <h2 className="font-display text-2xl font-semibold tracking-wide text-white">
+              ATP Top 10 <span className="text-base text-slate-500">· {formatDate(date)}</span>
             </h2>
-            <Link to="/leaderboard" className="text-sm text-sky-400 hover:underline">
-              Full leaderboard →
+            <Link to="/leaderboard" className="text-sm font-semibold text-win hover:underline">
+              Full rankings →
             </Link>
           </div>
-          <ol className="overflow-hidden rounded-xl border border-slate-800">
+          <ol className="overflow-hidden rounded-3xl bg-card">
             {top.map((e) => (
-              <li key={e.id} className="border-b border-slate-800/60 last:border-0">
+              <li key={e.id} className="border-b border-white/5 last:border-0">
                 <Link
                   to={`/player/${e.id}`}
-                  className="flex items-center gap-3 bg-slate-900 px-4 py-2.5 hover:bg-slate-800/80"
+                  className="flex items-center gap-3 px-5 py-2.5 hover:bg-card-2"
                 >
-                  <span className="w-6 text-right font-mono text-sm text-slate-500">{e.rank}</span>
+                  <span className="w-6 text-right font-display text-lg font-bold text-slate-500">{e.rank}</span>
                   <span>{flagEmoji(e.ioc)}</span>
                   <span className="flex-1 text-left text-sm text-slate-200">{e.full_name}</span>
                   <span className="text-xs tabular-nums text-slate-500">

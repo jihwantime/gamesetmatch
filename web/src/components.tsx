@@ -1,10 +1,10 @@
 import { useEffect, useRef, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, NavLink, useNavigate } from "react-router-dom";
 import { api, type MatchListItem, type RankPoint, type SearchPlayer } from "./api";
-import { flagEmoji, formatDate, LEVEL_BADGE, ratingTier } from "./lib";
+import { flagEmoji, formatDate, LEVEL_CHIP, parseSets, ratingTier } from "./lib";
 
-export const WIN_COLOR = "#3b82f6";
-export const LOSS_COLOR = "#ef4444";
+export const WIN_COLOR = "#b4f416";
+export const LOSS_COLOR = "#f97316";
 
 export function SearchBox({ large = false }: { large?: boolean }) {
   const [q, setQ] = useState("");
@@ -61,18 +61,18 @@ export function SearchBox({ large = false }: { large?: boolean }) {
         }}
         placeholder="Search a player…"
         aria-label="Search players"
-        className={`w-full rounded-lg border border-slate-700 bg-slate-900 text-slate-100 placeholder-slate-500
-          focus:border-sky-500 focus:outline-none ${large ? "px-5 py-3.5 text-lg" : "px-3 py-1.5 text-sm"}`}
+        className={`w-full rounded-full border border-white/10 bg-card text-slate-100 placeholder-slate-500
+          focus:border-win/60 focus:outline-none ${large ? "px-6 py-3.5 text-lg" : "px-4 py-1.5 text-sm"}`}
       />
       {open && results.length > 0 && (
-        <ul className="absolute z-20 mt-1 w-full overflow-hidden rounded-lg border border-slate-700 bg-slate-900 shadow-xl">
+        <ul className="absolute z-20 mt-2 w-full overflow-hidden rounded-2xl border border-white/10 bg-card shadow-2xl">
           {results.map((p, i) => (
             <li key={p.id}>
               <button
                 onMouseDown={(e) => { e.preventDefault(); go(p); }}
                 onMouseEnter={() => setActive(i)}
                 className={`flex w-full items-center gap-2 px-4 py-2 text-left text-sm ${
-                  i === active ? "bg-slate-800 text-white" : "text-slate-300"
+                  i === active ? "bg-card-2 text-white" : "text-slate-300"
                 }`}
               >
                 <span>{flagEmoji(p.ioc)}</span>
@@ -90,14 +90,21 @@ export function SearchBox({ large = false }: { large?: boolean }) {
 export function Layout({ children, hideSearch = false }: { children: React.ReactNode; hideSearch?: boolean }) {
   return (
     <div className="min-h-screen">
-      <header className="sticky top-0 z-10 border-b border-slate-800 bg-slate-950/90 backdrop-blur">
-        <div className="mx-auto flex max-w-5xl items-center gap-6 px-4 py-3">
-          <Link to="/" className="text-lg font-bold tracking-tight text-white">
+      <header className="sticky top-0 z-10 bg-ink/90 backdrop-blur">
+        <div className="mx-auto flex max-w-5xl items-center gap-3 px-4 py-4">
+          <Link to="/" className="mr-3 font-display text-2xl font-bold tracking-wide text-white">
             🎾 GameSetMatch
           </Link>
-          <Link to="/leaderboard" className="text-sm text-slate-400 hover:text-white">
-            Leaderboard
-          </Link>
+          <NavLink
+            to="/leaderboard"
+            className={({ isActive }) =>
+              `rounded-full px-4 py-1.5 text-sm font-semibold ${
+                isActive ? "bg-win text-black" : "bg-card text-slate-300 hover:bg-card-2 hover:text-white"
+              }`
+            }
+          >
+            🏆 Rankings
+          </NavLink>
           <div className="ml-auto">{!hideSearch && <SearchBox />}</div>
         </div>
       </header>
@@ -122,12 +129,40 @@ export function RatingBadge({ rating, size = "md" }: { rating: number | null; si
   return (
     <span
       title="ML performance rating (0–10)"
-      className={`inline-flex items-center justify-center rounded-md font-semibold tabular-nums ${tier.className} ${
-        size === "lg" ? "px-3 py-1 text-lg" : "min-w-10 px-2 py-0.5 text-sm"
+      className={`inline-flex items-center justify-center rounded-lg font-display font-semibold tabular-nums ${tier.className} ${
+        size === "lg" ? "px-3 py-1 text-2xl" : "min-w-10 px-2 py-0.5 text-base"
       }`}
     >
       {tier.label}
     </span>
+  );
+}
+
+function SetScores({ m }: { m: MatchListItem }) {
+  const sets = parseSets(m.score, m.result === "W");
+  if (!sets) {
+    return <span className="text-xs text-slate-500">{m.score ?? "—"}</span>;
+  }
+  const accent = m.result === "W" ? "text-win" : "text-loss";
+  return (
+    <div className="flex items-center gap-1.5">
+      {sets.map((s, i) => (
+        <div
+          key={i}
+          className="flex w-7 flex-col items-center rounded-lg bg-card-2 py-1 font-display text-base font-semibold leading-tight"
+        >
+          <span className={s.won ? accent : "text-slate-200"}>
+            {s.mine}
+            {s.tb != null && !s.won && <sup className="text-[9px] text-slate-500">{s.tb}</sup>}
+          </span>
+          <span className="text-slate-400">
+            {s.theirs}
+            {s.tb != null && s.won && <sup className="text-[9px] text-slate-500">{s.tb}</sup>}
+          </span>
+        </div>
+      ))}
+      {/RET/.test(m.score ?? "") && <span className="ml-1 text-[10px] uppercase text-slate-500">ret</span>}
+    </div>
   );
 }
 
@@ -136,35 +171,51 @@ export function MatchRow({ m }: { m: MatchListItem }) {
   return (
     <Link
       to={`/match/${m.id}`}
-      className={`flex items-center gap-3 rounded-lg border-l-4 bg-slate-900 px-4 py-3 transition hover:bg-slate-800/80 ${
-        win ? "border-[#3b82f6]" : "border-[#ef4444]"
-      }`}
+      className="relative flex items-center gap-4 overflow-hidden rounded-2xl bg-card px-4 py-3.5 pl-5 transition hover:bg-card-2"
     >
-      <span
-        className={`w-6 shrink-0 text-center text-sm font-bold ${win ? "text-[#3b82f6]" : "text-[#ef4444]"}`}
-      >
-        {m.result}
-      </span>
+      <span className={`absolute inset-y-3 left-0 w-1 rounded-r-full ${win ? "bg-win" : "bg-loss"}`} />
+      <div className="w-20 shrink-0">
+        <span
+          className={`inline-block rounded-full px-3 py-1 font-display text-sm font-bold ${
+            win ? "bg-win text-black" : "bg-loss text-black"
+          }`}
+        >
+          {win ? "Win" : "Loss"}
+        </span>
+        <div className="mt-1.5 text-[11px] text-slate-500">{formatDate(m.tourney_date)}</div>
+      </div>
       <div className="w-40 shrink-0">
-        <div className="truncate text-sm text-slate-200">{m.tourney_name}</div>
-        <div className="mt-0.5 flex items-center gap-1.5 text-xs text-slate-500">
-          <span>{formatDate(m.tourney_date)}</span>
+        <div className="flex items-center gap-2 text-[11px]">
           {m.tourney_level && (
-            <span className={`rounded px-1 py-px text-[10px] font-medium ${LEVEL_BADGE[m.tourney_level] ?? ""}`}>
-              {m.tourney_level}
+            <span className="rounded-md bg-white/5 px-1.5 py-0.5 font-medium text-slate-400">
+              {LEVEL_CHIP[m.tourney_level] ?? m.tourney_level}
             </span>
           )}
+          {m.surface && <span className="font-medium text-sky-400">{m.surface}</span>}
+        </div>
+        <div className="mt-1 truncate font-display text-lg font-semibold leading-tight text-white">
+          {m.tourney_name}
+        </div>
+        <div className="text-[11px] text-slate-500">{m.round}</div>
+      </div>
+      <div className="min-w-0 flex-1">
+        <div className="text-[11px] text-slate-500">{win ? "defeated" : "lost to"}</div>
+        <div className="truncate font-display text-lg font-semibold leading-tight text-white">
+          {flagEmoji(m.opponent_ioc)} {m.opponent_name}
+        </div>
+        <div className="text-[11px] text-slate-500">
+          {m.opponent_rank != null ? `#${m.opponent_rank}` : "unranked"}
+          {m.opponent_ioc && ` · ${m.opponent_ioc}`}
         </div>
       </div>
-      <div className="w-12 shrink-0 text-xs text-slate-400">{m.round}</div>
-      <div className="min-w-0 flex-1">
-        <span className="text-sm text-slate-400">vs </span>
-        <span className="truncate text-sm text-slate-200">
-          {flagEmoji(m.opponent_ioc)} {m.opponent_name}
-        </span>
-        {m.opponent_rank != null && <span className="ml-1 text-xs text-slate-500">#{m.opponent_rank}</span>}
+      <div className="hidden sm:block">
+        <SetScores m={m} />
       </div>
-      <div className="hidden text-sm tabular-nums text-slate-300 sm:block">{m.score ?? "—"}</div>
+      {m.minutes != null && (
+        <span className="hidden w-12 text-right text-xs tabular-nums text-slate-500 md:block">
+          🕐 {Math.floor(m.minutes / 60)}:{String(m.minutes % 60).padStart(2, "0")}
+        </span>
+      )}
       <RatingBadge rating={m.rating} />
     </Link>
   );
@@ -218,12 +269,12 @@ export function RankSparkline({ history }: { history: RankPoint[] }) {
               x1={x(hovered.ranking_date)} x2={x(hovered.ranking_date)} y1="0" y2={H}
               stroke="#64748b" strokeWidth="1" strokeDasharray="3 2"
             />
-            <circle cx={x(hovered.ranking_date)} cy={y(hovered.rank)} r="3.5" fill={WIN_COLOR} stroke="#0f172a" strokeWidth="2" />
+            <circle cx={x(hovered.ranking_date)} cy={y(hovered.rank)} r="3.5" fill={WIN_COLOR} stroke="#0b0b0a" strokeWidth="2" />
           </>
         )}
       </svg>
       {hovered && (
-        <div className="pointer-events-none absolute -top-2 left-1/2 -translate-x-1/2 rounded bg-slate-800 px-2 py-1 text-xs text-slate-200 shadow">
+        <div className="pointer-events-none absolute -top-2 left-1/2 -translate-x-1/2 rounded-lg bg-card-2 px-2 py-1 text-xs text-slate-200 shadow">
           #{hovered.rank} · {formatDate(hovered.ranking_date)}
         </div>
       )}
@@ -231,7 +282,7 @@ export function RankSparkline({ history }: { history: RankPoint[] }) {
   );
 }
 
-// Horizontal win/loss split bar with a 2px gap between the fills.
+// Horizontal win-rate bar: lime fill on a dark track, always labeled.
 export function WinLossBar({ label, wins, losses }: { label: string; wins: number; losses: number }) {
   const total = wins + losses;
   const winPct = total > 0 ? (wins / total) * 100 : 0;
@@ -240,14 +291,48 @@ export function WinLossBar({ label, wins, losses }: { label: string; wins: numbe
       <div className="mb-1 flex items-baseline justify-between text-xs">
         <span className="text-slate-400">{label}</span>
         <span className="tabular-nums text-slate-300">
-          {wins}W – {losses}L{total > 0 && <span className="ml-1 text-slate-500">({winPct.toFixed(0)}%)</span>}
+          {wins}W <span className="text-slate-500">{losses}L</span>{" "}
+          {total > 0 && <span className="font-semibold text-win">{winPct.toFixed(0)}%</span>}
         </span>
       </div>
-      <div className="flex h-2.5 gap-[2px] overflow-hidden rounded-full bg-slate-800" role="img" aria-label={`${label}: ${wins} wins, ${losses} losses`}>
-        {wins > 0 && <div style={{ width: `${winPct}%`, background: WIN_COLOR }} />}
-        {losses > 0 && <div className="flex-1" style={{ background: LOSS_COLOR }} />}
+      <div
+        className="h-2 overflow-hidden rounded-full bg-white/5"
+        role="img"
+        aria-label={`${label}: ${wins} wins, ${losses} losses`}
+      >
+        <div className="h-full rounded-full" style={{ width: `${winPct}%`, background: WIN_COLOR }} />
       </div>
     </div>
+  );
+}
+
+export function FilterSelect({
+  label,
+  value,
+  options,
+  onChange,
+}: {
+  label: string;
+  value: string;
+  options: { value: string; label: string }[];
+  onChange: (v: string) => void;
+}) {
+  return (
+    <label className="flex cursor-pointer items-center gap-1 rounded-full bg-card px-4 py-1.5 text-sm text-slate-300">
+      <span className="text-slate-500">{label}:</span>
+      <select
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        className="cursor-pointer appearance-none bg-transparent pr-1 font-semibold text-slate-200 focus:outline-none"
+      >
+        {options.map((o) => (
+          <option key={o.value} value={o.value} className="bg-card">
+            {o.label}
+          </option>
+        ))}
+      </select>
+      <span className="text-xs text-slate-500">▾</span>
+    </label>
   );
 }
 
@@ -256,5 +341,5 @@ export function Spinner() {
 }
 
 export function ErrorNote({ message }: { message: string }) {
-  return <div className="py-16 text-center text-red-400">{message}</div>;
+  return <div className="py-16 text-center text-loss">{message}</div>;
 }

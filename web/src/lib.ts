@@ -26,13 +26,14 @@ export const LEVEL_NAMES: Record<string, string> = {
   O: "Olympics",
 };
 
-export const LEVEL_BADGE: Record<string, string> = {
-  G: "bg-amber-500/15 text-amber-400",
-  M: "bg-violet-500/15 text-violet-400",
-  A: "bg-slate-500/15 text-slate-400",
-  F: "bg-cyan-500/15 text-cyan-400",
-  D: "bg-emerald-500/15 text-emerald-400",
-  O: "bg-rose-500/15 text-rose-300",
+// short chip label per level, op.gg/v0 style ("ATP 1000  Hard")
+export const LEVEL_CHIP: Record<string, string> = {
+  G: "Grand Slam",
+  M: "ATP 1000",
+  A: "ATP",
+  F: "ATP Finals",
+  D: "Davis Cup",
+  O: "Olympics",
 };
 
 export const ROUND_NAMES: Record<string, string> = {
@@ -73,17 +74,34 @@ export function flagEmoji(ioc: string | null | undefined): string {
   return String.fromCodePoint(...[...iso].map((c) => 0x1f1e6 + c.charCodeAt(0) - 65));
 }
 
-// Rating tiers, op.gg style. Rating text is always shown next to the color.
+// Rating tiers. Rating text is always shown next to the color.
 export function ratingTier(rating: number | null | undefined): {
   label: string;
   className: string;
 } {
-  if (rating == null) return { label: "—", className: "bg-slate-800 text-slate-500" };
-  if (rating >= 8.5) return { label: rating.toFixed(1), className: "bg-amber-500/20 text-amber-400 ring-1 ring-amber-500/40" };
-  if (rating >= 7) return { label: rating.toFixed(1), className: "bg-sky-500/20 text-sky-400" };
-  if (rating >= 5) return { label: rating.toFixed(1), className: "bg-emerald-500/20 text-emerald-400" };
-  if (rating >= 3.5) return { label: rating.toFixed(1), className: "bg-slate-600/30 text-slate-300" };
-  return { label: rating.toFixed(1), className: "bg-red-500/15 text-red-400" };
+  if (rating == null) return { label: "—", className: "bg-white/5 text-slate-600" };
+  if (rating >= 8.5) return { label: rating.toFixed(1), className: "bg-win text-black" };
+  if (rating >= 7) return { label: rating.toFixed(1), className: "bg-win/15 text-win" };
+  if (rating >= 5) return { label: rating.toFixed(1), className: "bg-white/10 text-slate-200" };
+  if (rating >= 3.5) return { label: rating.toFixed(1), className: "bg-white/5 text-slate-400" };
+  return { label: rating.toFixed(1), className: "bg-loss/15 text-loss" };
+}
+
+// Parse "6-4 7-6(5)" into per-set cells from the row player's perspective.
+export type SetCell = { mine: number; theirs: number; tb: number | null; won: boolean };
+
+export function parseSets(score: string | null, playerWon: boolean): SetCell[] | null {
+  if (!score || /W\/O/i.test(score)) return null;
+  const cells: SetCell[] = [];
+  for (const token of score.split(/\s+/)) {
+    const m = token.match(/^(\d+)-(\d+)(?:\((\d+)\))?$/);
+    if (!m) continue;
+    const [w, l] = [Number(m[1]), Number(m[2])];
+    const mine = playerWon ? w : l;
+    const theirs = playerWon ? l : w;
+    cells.push({ mine, theirs, tb: m[3] ? Number(m[3]) : null, won: mine > theirs });
+  }
+  return cells.length > 0 ? cells : null;
 }
 
 export function pct(num: number | null, den: number | null): number | null {
