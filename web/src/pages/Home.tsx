@@ -7,7 +7,6 @@ import { flagEmoji, formatDate } from "../lib";
 export default function Home() {
   const [top, setTop] = useState<LeaderboardEntry[]>([]);
   const [date, setDate] = useState<number | null>(null);
-  const [revealed, setRevealed] = useState(false);
   const topRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -17,15 +16,34 @@ export default function Home() {
     }).catch(() => {});
   }, []);
 
-  // fade the top-10 in as it scrolls into view, and back out as it leaves
+  // Drive the top-10's opacity/offset straight from its scroll position, so the
+  // fade tracks scroll speed exactly (no fixed-duration transition to lag behind).
   useEffect(() => {
-    if (top.length === 0 || !topRef.current) return;
-    const obs = new IntersectionObserver(
-      ([entry]) => setRevealed(entry.isIntersecting),
-      { threshold: 0.2 }
-    );
-    obs.observe(topRef.current);
-    return () => obs.disconnect();
+    if (top.length === 0) return;
+    const FADE_DIST = 260; // px of scroll over which it goes fully hidden -> shown
+    let raf = 0;
+    const update = () => {
+      raf = 0;
+      const el = topRef.current;
+      if (!el) return;
+      const rectTop = el.getBoundingClientRect().top;
+      // 0 when the section's top sits at the bottom edge of the viewport,
+      // 1 once it has risen FADE_DIST px further up.
+      const progress = Math.min(1, Math.max(0, (window.innerHeight - rectTop) / FADE_DIST));
+      el.style.opacity = String(progress);
+      el.style.transform = `translateY(${(1 - progress) * 32}px)`;
+    };
+    const onScroll = () => {
+      if (!raf) raf = requestAnimationFrame(update);
+    };
+    update();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", onScroll);
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", onScroll);
+      if (raf) cancelAnimationFrame(raf);
+    };
   }, [top.length]);
 
   return (
@@ -53,9 +71,8 @@ export default function Home() {
       {top.length > 0 && (
         <div
           ref={topRef}
-          className={`mx-auto max-w-2xl pb-16 transition-all duration-700 ease-out ${
-            revealed ? "translate-y-0 opacity-100" : "translate-y-10 opacity-0"
-          }`}
+          style={{ opacity: 0, willChange: "opacity, transform" }}
+          className="mx-auto max-w-2xl pb-16"
         >
           <div className="mb-3 flex items-baseline justify-between">
             <h2 className="font-display text-2xl font-semibold tracking-wide text-white">
