@@ -17,16 +17,11 @@ export default function Home() {
     }).catch(() => {});
   }, []);
 
-  // reveal the top-10 only once the user scrolls it into view
+  // fade the top-10 in as it scrolls into view, and back out as it leaves
   useEffect(() => {
     if (top.length === 0 || !topRef.current) return;
     const obs = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          setRevealed(true);
-          obs.disconnect();
-        }
-      },
+      ([entry]) => setRevealed(entry.isIntersecting),
       { threshold: 0.2 }
     );
     obs.observe(topRef.current);
