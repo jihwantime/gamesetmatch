@@ -145,7 +145,7 @@ export function PlayerPicker({
           }}
           onFocus={() => results.length > 0 && setOpen(true)}
           placeholder="Search a player…"
-          className="w-full bg-transparent font-display text-xl font-semibold text-white placeholder:font-sans placeholder:text-base placeholder:font-normal placeholder:text-slate-500 focus:outline-none"
+          className="w-full bg-transparent text-center font-display text-xl font-semibold text-white placeholder:font-sans placeholder:text-base placeholder:font-normal placeholder:text-slate-500 focus:outline-none"
         />
       </div>
       {open && results.length > 0 && (
