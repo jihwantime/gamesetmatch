@@ -4,7 +4,7 @@ import { api, type Prediction, type SearchPlayer } from "../api";
 import { Layout, PlayerPicker, WIN_COLOR, LOSS_COLOR } from "../components";
 import { flagEmoji } from "../lib";
 
-const SURFACES = ["Hard", "Clay", "Grass", "Carpet"];
+const SURFACES = ["Hard", "Clay", "Grass"];
 
 export default function Predict() {
   const [p1, setP1] = useState<SearchPlayer | null>(null);
@@ -138,8 +138,7 @@ function EloCard({ side, surface, accent }: { side: Prediction["p1"]; surface: s
   const surfaceElo =
     surface === "Hard" ? side.elo_hard
     : surface === "Clay" ? side.elo_clay
-    : surface === "Grass" ? side.elo_grass
-    : side.elo_carpet;
+    : side.elo_grass;
   return (
     <div className="rounded-3xl bg-card p-5">
       <Link to={`/player/${side.player_id}`} className="font-display text-xl font-semibold text-white hover:underline">

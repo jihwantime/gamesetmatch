@@ -98,18 +98,27 @@ export function PlayerPicker({
   onSelect: (p: SearchPlayer | null) => void;
   accent: string;
 }) {
-  const [q, setQ] = useState("");
+  const [q, setQ] = useState(selected?.full_name ?? "");
   const [results, setResults] = useState<SearchPlayer[]>([]);
   const [open, setOpen] = useState(false);
   const boxRef = useRef<HTMLDivElement>(null);
 
+  const pick = (p: SearchPlayer) => {
+    onSelect(p);
+    setQ(p.full_name);
+    setResults([]);
+    setOpen(false);
+  };
+
   useEffect(() => {
+    // don't re-search while the input still shows the already-picked player's name
+    if (selected && q === selected.full_name) return setResults([]);
     if (q.trim().length < 2) return setResults([]);
     const t = setTimeout(() => {
       api.search(q.trim()).then((r) => { setResults(r.players); setOpen(true); }).catch(() => setResults([]));
     }, 200);
     return () => clearTimeout(t);
-  }, [q]);
+  }, [q, selected]);
 
   useEffect(() => {
     const onClick = (e: MouseEvent) => {
@@ -119,36 +128,32 @@ export function PlayerPicker({
     return () => document.removeEventListener("mousedown", onClick);
   }, []);
 
-  if (selected) {
-    return (
-      <div className="flex items-center gap-3 rounded-2xl bg-card-2 px-4 py-3" style={{ boxShadow: `inset 0 0 0 2px ${accent}` }}>
-        <span className="text-2xl">{flagEmoji(selected.ioc)}</span>
-        <span className="flex-1 truncate font-display text-xl font-semibold text-white">{selected.full_name}</span>
-        <button
-          onClick={() => { onSelect(null); setQ(""); }}
-          className="rounded-full bg-white/10 px-2 py-0.5 text-xs text-slate-300 hover:bg-white/20"
-        >
-          change
-        </button>
-      </div>
-    );
-  }
-
   return (
     <div ref={boxRef} className="relative">
-      <input
-        value={q}
-        onChange={(e) => setQ(e.target.value)}
-        onFocus={() => results.length > 0 && setOpen(true)}
-        placeholder="Search a player…"
-        className="w-full rounded-2xl border border-white/10 bg-card px-4 py-3 text-slate-100 placeholder-slate-500 focus:border-win/60 focus:outline-none"
-      />
+      <div
+        className={`flex items-center gap-2 rounded-2xl bg-card px-4 py-3 ${
+          selected ? "" : "border border-white/10"
+        }`}
+        style={selected ? { boxShadow: `inset 0 0 0 2px ${accent}` } : undefined}
+      >
+        {selected && <span className="text-2xl">{flagEmoji(selected.ioc)}</span>}
+        <input
+          value={q}
+          onChange={(e) => {
+            if (selected) onSelect(null); // editing the name clears the pick until a new one is chosen
+            setQ(e.target.value);
+          }}
+          onFocus={() => results.length > 0 && setOpen(true)}
+          placeholder="Search a player…"
+          className="w-full bg-transparent font-display text-xl font-semibold text-white placeholder:font-sans placeholder:text-base placeholder:font-normal placeholder:text-slate-500 focus:outline-none"
+        />
+      </div>
       {open && results.length > 0 && (
         <ul className="absolute z-20 mt-2 w-full overflow-hidden rounded-2xl border border-white/10 bg-card shadow-2xl">
           {results.map((p) => (
             <li key={p.id}>
               <button
-                onMouseDown={(e) => { e.preventDefault(); onSelect(p); setOpen(false); }}
+                onMouseDown={(e) => { e.preventDefault(); pick(p); }}
                 className="flex w-full items-center gap-2 px-4 py-2 text-left text-sm text-slate-300 hover:bg-card-2"
               >
                 <span>{flagEmoji(p.ioc)}</span>
