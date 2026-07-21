@@ -87,6 +87,82 @@ export function SearchBox({ large = false }: { large?: boolean }) {
   );
 }
 
+// Search-and-select a single player (for the predictor). Unlike SearchBox it
+// keeps a selected player instead of navigating away.
+export function PlayerPicker({
+  selected,
+  onSelect,
+  accent,
+}: {
+  selected: SearchPlayer | null;
+  onSelect: (p: SearchPlayer | null) => void;
+  accent: string;
+}) {
+  const [q, setQ] = useState("");
+  const [results, setResults] = useState<SearchPlayer[]>([]);
+  const [open, setOpen] = useState(false);
+  const boxRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (q.trim().length < 2) return setResults([]);
+    const t = setTimeout(() => {
+      api.search(q.trim()).then((r) => { setResults(r.players); setOpen(true); }).catch(() => setResults([]));
+    }, 200);
+    return () => clearTimeout(t);
+  }, [q]);
+
+  useEffect(() => {
+    const onClick = (e: MouseEvent) => {
+      if (!boxRef.current?.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener("mousedown", onClick);
+    return () => document.removeEventListener("mousedown", onClick);
+  }, []);
+
+  if (selected) {
+    return (
+      <div className="flex items-center gap-3 rounded-2xl bg-card-2 px-4 py-3" style={{ boxShadow: `inset 0 0 0 2px ${accent}` }}>
+        <span className="text-2xl">{flagEmoji(selected.ioc)}</span>
+        <span className="flex-1 truncate font-display text-xl font-semibold text-white">{selected.full_name}</span>
+        <button
+          onClick={() => { onSelect(null); setQ(""); }}
+          className="rounded-full bg-white/10 px-2 py-0.5 text-xs text-slate-300 hover:bg-white/20"
+        >
+          change
+        </button>
+      </div>
+    );
+  }
+
+  return (
+    <div ref={boxRef} className="relative">
+      <input
+        value={q}
+        onChange={(e) => setQ(e.target.value)}
+        onFocus={() => results.length > 0 && setOpen(true)}
+        placeholder="Search a player…"
+        className="w-full rounded-2xl border border-white/10 bg-card px-4 py-3 text-slate-100 placeholder-slate-500 focus:border-win/60 focus:outline-none"
+      />
+      {open && results.length > 0 && (
+        <ul className="absolute z-20 mt-2 w-full overflow-hidden rounded-2xl border border-white/10 bg-card shadow-2xl">
+          {results.map((p) => (
+            <li key={p.id}>
+              <button
+                onMouseDown={(e) => { e.preventDefault(); onSelect(p); setOpen(false); }}
+                className="flex w-full items-center gap-2 px-4 py-2 text-left text-sm text-slate-300 hover:bg-card-2"
+              >
+                <span>{flagEmoji(p.ioc)}</span>
+                <span className="flex-1">{p.full_name}</span>
+                <span className="text-xs text-slate-500">{p.total_matches} matches</span>
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
+}
+
 export function Layout({ children, hideSearch = false }: { children: React.ReactNode; hideSearch?: boolean }) {
   return (
     <div className="min-h-screen">
@@ -104,6 +180,16 @@ export function Layout({ children, hideSearch = false }: { children: React.React
             }
           >
             🏆 Rankings
+          </NavLink>
+          <NavLink
+            to="/predict"
+            className={({ isActive }) =>
+              `rounded-full px-4 py-1.5 text-sm font-semibold ${
+                isActive ? "bg-win text-black" : "bg-card text-slate-300 hover:bg-card-2 hover:text-white"
+              }`
+            }
+          >
+            🔮 Predict
           </NavLink>
           <div className="ml-auto">{!hideSearch && <SearchBox />}</div>
         </div>

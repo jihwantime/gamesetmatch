@@ -158,11 +158,19 @@ export async function getLeaderboard(db: D1Database, date?: number) {
     )?.d;
   if (!snapshot) return { date: null, entries: [] };
 
+  // Rating shown on the leaderboard is recent form: the average per-match rating
+  // over the player's last 20 rated matches (not their whole career).
   const { results } = await db
     .prepare(
       `SELECT r.rank, r.points, p.id, p.full_name, p.ioc,
-              (SELECT AVG(CASE WHEN winner_id = p.id THEN winner_rating ELSE loser_rating END)
-               FROM matches WHERE winner_id = p.id OR loser_id = p.id) AS avg_rating
+              (SELECT AVG(rating) FROM (
+                 SELECT CASE WHEN m.winner_id = p.id THEN m.winner_rating ELSE m.loser_rating END AS rating
+                 FROM matches m
+                 WHERE (m.winner_id = p.id OR m.loser_id = p.id)
+                   AND (CASE WHEN m.winner_id = p.id THEN m.winner_rating ELSE m.loser_rating END) IS NOT NULL
+                 ORDER BY m.tourney_date DESC, m.match_num DESC
+                 LIMIT 20
+               )) AS avg_rating
        FROM rankings r JOIN players p ON p.id = r.player_id
        WHERE r.ranking_date = ?1
        ORDER BY r.rank LIMIT 100`
@@ -203,5 +211,66 @@ export async function getHeadToHead(db: D1Database, id1: number, id2: number) {
     p1_wins: (record as { p1_wins: number } | null)?.p1_wins ?? 0,
     p2_wins: (record as { p2_wins: number } | null)?.p2_wins ?? 0,
     matches,
+  };
+}
+
+type EloRow = {
+  player_id: number;
+  full_name: string;
+  ioc: string | null;
+  elo: number;
+  elo_hard: number | null;
+  elo_clay: number | null;
+  elo_grass: number | null;
+  elo_carpet: number | null;
+  matches: number | null;
+  peak_elo: number | null;
+};
+
+const SURFACE_WEIGHT = 0.6; // must match ml/train_elo.py
+
+// Rating used for a prediction: blend of surface-specific and overall Elo, so a
+// player with few matches on a surface still gets a sensible number.
+function ratingForSurface(e: EloRow, surface: string | null): number {
+  const col =
+    surface === "Hard" ? e.elo_hard
+    : surface === "Clay" ? e.elo_clay
+    : surface === "Grass" ? e.elo_grass
+    : surface === "Carpet" ? e.elo_carpet
+    : null;
+  if (col == null) return e.elo;
+  return SURFACE_WEIGHT * col + (1 - SURFACE_WEIGHT) * e.elo;
+}
+
+export async function getPrediction(
+  db: D1Database,
+  id1: number,
+  id2: number,
+  surface: string | null
+) {
+  const { results } = await db
+    .prepare(
+      `SELECT p.id AS player_id, p.full_name, p.ioc,
+              e.elo, e.elo_hard, e.elo_clay, e.elo_grass, e.elo_carpet, e.matches, e.peak_elo
+       FROM players p JOIN player_elo e ON e.player_id = p.id
+       WHERE p.id IN (?1, ?2)`
+    )
+    .bind(id1, id2)
+    .all<EloRow>();
+  const e1 = results.find((r) => r.player_id === id1);
+  const e2 = results.find((r) => r.player_id === id2);
+  if (!e1 || !e2) return null;
+
+  const r1 = ratingForSurface(e1, surface);
+  const r2 = ratingForSurface(e2, surface);
+  const prob1 = 1 / (1 + 10 ** ((r2 - r1) / 400));
+
+  const h2h = await getHeadToHead(db, id1, id2);
+
+  return {
+    surface: surface ?? "all",
+    p1: { ...e1, surface_rating: Math.round(r1), win_prob: prob1 },
+    p2: { ...e2, surface_rating: Math.round(r2), win_prob: 1 - prob1 },
+    h2h: h2h ? { p1_wins: h2h.p1_wins, p2_wins: h2h.p2_wins } : { p1_wins: 0, p2_wins: 0 },
   };
 }

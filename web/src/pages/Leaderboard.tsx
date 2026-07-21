@@ -19,8 +19,8 @@ export default function Leaderboard() {
     <Layout>
       <h1 className="font-display text-4xl font-bold tracking-wide text-white">ATP Rankings</h1>
       <p className="mt-1 text-sm text-slate-500">
-        Latest snapshot in the dataset: {formatDate(date)}. Rating is the player's career
-        average ML performance rating.
+        Latest snapshot in the dataset: {formatDate(date)}. Form is the player's average ML
+        performance rating over their last 20 matches.
       </p>
       {!entries ? (
         <Spinner />
@@ -32,7 +32,7 @@ export default function Leaderboard() {
                 <th className="px-5 py-3 text-right">#</th>
                 <th className="px-5 py-3">Player</th>
                 <th className="px-5 py-3 text-right">Points</th>
-                <th className="px-5 py-3 text-right">Avg rating</th>
+                <th className="px-5 py-3 text-right">Form (L20)</th>
               </tr>
             </thead>
             <tbody>

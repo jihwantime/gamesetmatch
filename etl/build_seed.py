@@ -16,6 +16,7 @@ ROOT = Path(__file__).parent.parent
 DATA = ROOT / "etl" / "data"
 OUT = ROOT / "etl" / "out"
 RATINGS_CSV = ROOT / "ml" / "out" / "ratings.csv"
+ELO_CSV = ROOT / "ml" / "out" / "elo.csv"
 
 YEARS = range(2000, 2027)
 MAX_RANK = 300          # rankings kept per week (leaderboard + sparklines)
@@ -156,8 +157,16 @@ def main() -> None:
         ("dataset", "Aneeshers/tennis-sackmann-archive (atp, 2000-2025)"),
         ("build_date", date.today().isoformat()),
         ("ratings", "yes" if RATINGS_CSV.exists() else "no"),
+        ("elo", "yes" if ELO_CSV.exists() else "no"),
     ]
     write_inserts("meta", ["key", "value"], meta, "03_meta")
+
+    if ELO_CSV.exists():
+        elo = pd.read_csv(ELO_CSV)
+        elo = elo[elo["player_id"].isin(player_ids)]
+        elo_cols = ["player_id", "elo", "elo_hard", "elo_clay", "elo_grass", "elo_carpet", "matches", "peak_elo"]
+        write_inserts("player_elo", elo_cols, list(elo[elo_cols].itertuples(index=False, name=None)), "04_elo")
+        print(f"{len(elo)} player_elo rows")
 
 
 if __name__ == "__main__":

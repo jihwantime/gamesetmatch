@@ -5,6 +5,7 @@ import {
   getMatch,
   getPlayerMatches,
   getPlayerProfile,
+  getPrediction,
   getRankHistory,
   searchPlayers,
 } from "./queries";
@@ -69,6 +70,21 @@ app.get("/api/h2h/:id1/:id2", async (c) => {
   const h2h = await getHeadToHead(c.env.DB, id1, id2);
   if (!h2h) return c.json({ error: "player not found" }, 404);
   return c.json(h2h);
+});
+
+app.get("/api/predict", async (c) => {
+  const id1 = Number(c.req.query("p1"));
+  const id2 = Number(c.req.query("p2"));
+  if (!Number.isInteger(id1) || !Number.isInteger(id2) || id1 === id2) {
+    return c.json({ error: "pick two different players" }, 400);
+  }
+  const surfaceParam = c.req.query("surface");
+  const surface = ["Hard", "Clay", "Grass", "Carpet"].includes(surfaceParam ?? "")
+    ? surfaceParam!
+    : null;
+  const prediction = await getPrediction(c.env.DB, id1, id2, surface);
+  if (!prediction) return c.json({ error: "player has no Elo rating" }, 404);
+  return c.json(prediction);
 });
 
 app.notFound((c) =>

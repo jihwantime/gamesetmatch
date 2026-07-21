@@ -1,5 +1,6 @@
 -- GameSetMatch D1 schema. Applied by `npm run db:reset` before seeding.
 
+DROP TABLE IF EXISTS player_elo;
 DROP TABLE IF EXISTS meta;
 DROP TABLE IF EXISTS rankings;
 DROP TABLE IF EXISTS matches;
@@ -63,4 +64,14 @@ CREATE INDEX idx_rankings_date ON rankings (ranking_date, rank);
 CREATE TABLE meta (
   key TEXT PRIMARY KEY,
   value TEXT NOT NULL
+);
+
+-- Current Elo ratings (overall + per surface), from ml/train_elo.py. Used by the
+-- match predictor; the Worker turns two players' ratings into a win probability.
+CREATE TABLE player_elo (
+  player_id INTEGER PRIMARY KEY REFERENCES players(id),
+  elo REAL NOT NULL,
+  elo_hard REAL, elo_clay REAL, elo_grass REAL, elo_carpet REAL,
+  matches INTEGER,
+  peak_elo REAL
 );

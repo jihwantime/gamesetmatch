@@ -3,6 +3,7 @@ import Home from "./pages/Home";
 import Player from "./pages/Player";
 import MatchDetail from "./pages/MatchDetail";
 import Leaderboard from "./pages/Leaderboard";
+import Predict from "./pages/Predict";
 
 export default function App() {
   return (
@@ -11,6 +12,7 @@ export default function App() {
       <Route path="/player/:id" element={<Player />} />
       <Route path="/match/:id" element={<MatchDetail />} />
       <Route path="/leaderboard" element={<Leaderboard />} />
+      <Route path="/predict" element={<Predict />} />
     </Routes>
   );
 }

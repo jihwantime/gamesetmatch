@@ -105,6 +105,28 @@ export type H2H = {
   matches: MatchListItem[];
 };
 
+export type PredictSide = {
+  player_id: number;
+  full_name: string;
+  ioc: string | null;
+  elo: number;
+  elo_hard: number | null;
+  elo_clay: number | null;
+  elo_grass: number | null;
+  elo_carpet: number | null;
+  matches: number | null;
+  peak_elo: number | null;
+  surface_rating: number;
+  win_prob: number;
+};
+
+export type Prediction = {
+  surface: string;
+  p1: PredictSide;
+  p2: PredictSide;
+  h2h: { p1_wins: number; p2_wins: number };
+};
+
 async function get<T>(url: string): Promise<T> {
   const res = await fetch(url);
   if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
@@ -126,4 +148,9 @@ export const api = {
   match: (id: number | string) => get<MatchDetail>(`/api/matches/${id}`),
   leaderboard: () => get<{ date: number | null; entries: LeaderboardEntry[] }>("/api/leaderboard"),
   h2h: (id1: number, id2: number) => get<H2H>(`/api/h2h/${id1}/${id2}`),
+  predict: (p1: number, p2: number, surface?: string) => {
+    const q = new URLSearchParams({ p1: String(p1), p2: String(p2) });
+    if (surface) q.set("surface", surface);
+    return get<Prediction>(`/api/predict?${q}`);
+  },
 };
