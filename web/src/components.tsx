@@ -163,34 +163,38 @@ export function PlayerPicker({
   );
 }
 
+function NavTab({ to, label }: { to: string; label: string }) {
+  return (
+    <NavLink
+      to={to}
+      className={({ isActive }) =>
+        `relative py-1 text-sm font-semibold tracking-wide transition ${
+          isActive ? "text-white" : "text-slate-500 hover:text-slate-300"
+        }`
+      }
+    >
+      {({ isActive }) => (
+        <>
+          {label}
+          {isActive && (
+            <span className="absolute -bottom-1.5 left-0 right-0 h-0.5 rounded-full bg-win" />
+          )}
+        </>
+      )}
+    </NavLink>
+  );
+}
+
 export function Layout({ children, hideSearch = false }: { children: React.ReactNode; hideSearch?: boolean }) {
   return (
     <div className="min-h-screen">
       <header className="sticky top-0 z-10 bg-ink/90 backdrop-blur">
-        <div className="mx-auto flex max-w-5xl items-center gap-3 px-4 py-4">
-          <Link to="/" className="mr-3" aria-label="GameSetMatch home">
+        <div className="mx-auto flex max-w-5xl items-center gap-6 px-4 py-4">
+          <Link to="/" className="mr-1" aria-label="GameSetMatch home">
             <img src="/ball.svg" alt="GameSetMatch" className="h-9 w-9 transition hover:rotate-12" />
           </Link>
-          <NavLink
-            to="/leaderboard"
-            className={({ isActive }) =>
-              `rounded-full px-4 py-1.5 text-sm font-semibold ${
-                isActive ? "bg-win text-black" : "bg-card text-slate-300 hover:bg-card-2 hover:text-white"
-              }`
-            }
-          >
-            🏆 Rankings
-          </NavLink>
-          <NavLink
-            to="/predict"
-            className={({ isActive }) =>
-              `rounded-full px-4 py-1.5 text-sm font-semibold ${
-                isActive ? "bg-win text-black" : "bg-card text-slate-300 hover:bg-card-2 hover:text-white"
-              }`
-            }
-          >
-            🔮 Predict
-          </NavLink>
+          <NavTab to="/leaderboard" label="Rankings" />
+          <NavTab to="/predict" label="Match Prediction" />
           <div className="ml-auto">{!hideSearch && <SearchBox />}</div>
         </div>
       </header>
