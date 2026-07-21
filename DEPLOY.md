@@ -1,7 +1,9 @@
 # Deploying to Cloudflare
 
-Everything so far runs locally (wrangler emulates D1 with SQLite under `.wrangler/`).
-To put it on the real thing:
+**Live:** https://gamesetmatch.jihwantime.workers.dev
+
+Local dev still uses wrangler's emulated D1 (SQLite under `.wrangler/`). To (re)deploy
+to production, or to stand up a fresh Cloudflare account from scratch:
 
 1. **Log in** (opens a browser):
    ```sh
@@ -11,7 +13,8 @@ To put it on the real thing:
    ```sh
    npx wrangler d1 create gamesetmatch
    ```
-   Paste the `database_id` into `wrangler.jsonc`, replacing the zeros placeholder.
+   Paste the `database_id` into `wrangler.jsonc` (the current one is already committed
+   for this project's database).
 3. **Seed the remote database** (same files as local, with `--remote`):
    ```sh
    npx wrangler d1 execute gamesetmatch --remote --file=schema.sql
@@ -25,7 +28,15 @@ To put it on the real thing:
    npm run deploy
    ```
    That builds `web/dist` and publishes the Worker serving both the API and the app at
-   `https://gamesetmatch.<your-subdomain>.workers.dev`.
+   `https://gamesetmatch.<your-subdomain>.workers.dev`. (A first-time account also needs a
+   workers.dev subdomain registered — wrangler prompts with a dashboard link.)
+
+## Redeploying after data or code changes
+
+- **Code / UI only:** `npm run deploy`.
+- **Data refresh:** re-run the ETL (`etl/fetch_recent.py`, `ml/train_rating.py`,
+  `etl/build_seed.py`), then replay the changed seed files with `--remote` as in step 3,
+  then `npm run deploy`.
 
 Free-tier fit: the database is ~60MB (limit 500MB), and reads are well within the
 daily row-read allowance for a hobby project.
