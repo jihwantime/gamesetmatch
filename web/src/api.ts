@@ -146,7 +146,13 @@ export const api = {
   rankHistory: (id: number | string) =>
     get<{ history: RankPoint[] }>(`/api/players/${id}/rank-history`),
   match: (id: number | string) => get<MatchDetail>(`/api/matches/${id}`),
-  leaderboard: () => get<{ date: number | null; entries: LeaderboardEntry[] }>("/api/leaderboard"),
+  leaderboard: () =>
+    get<{
+      date: number | null;
+      entries: LeaderboardEntry[];
+      updated: string | null;
+      derived: boolean;
+    }>("/api/leaderboard"),
   h2h: (id1: number, id2: number) => get<H2H>(`/api/h2h/${id1}/${id2}`),
   predict: (p1: number, p2: number, surface?: string) => {
     const q = new URLSearchParams({ p1: String(p1), p2: String(p2) });

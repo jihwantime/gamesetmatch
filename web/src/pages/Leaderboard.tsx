@@ -7,11 +7,13 @@ import { flagEmoji, formatDate } from "../lib";
 export default function Leaderboard() {
   const [entries, setEntries] = useState<LeaderboardEntry[] | null>(null);
   const [date, setDate] = useState<number | null>(null);
+  const [updated, setUpdated] = useState<string | null>(null);
 
   useEffect(() => {
     api.leaderboard().then((r) => {
       setEntries(r.entries);
       setDate(r.date);
+      setUpdated(r.updated);
     }).catch(() => setEntries([]));
   }, []);
 
@@ -19,8 +21,9 @@ export default function Leaderboard() {
     <Layout>
       <h1 className="font-display text-4xl font-bold tracking-wide text-white">ATP Rankings</h1>
       <p className="mt-1 text-sm text-slate-500">
-        Latest snapshot in the dataset: {formatDate(date)}. Form is the player's average ML
-        performance rating over their last 20 matches.
+        Rankings as of {formatDate(date)}. Form is the player's average ML performance rating
+        over their last 20 matches.
+        {updated && <> Data refreshed weekly — last update {updated}.</>}
       </p>
       {!entries ? (
         <Spinner />

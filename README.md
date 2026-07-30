@@ -22,11 +22,13 @@ mid-range. Details, evaluation, and sanity checks: [ml/MODEL_CARD.md](ml/MODEL_C
 | Players | 2,793 |
 | Holdout AUC | 0.9875 (see model card for why that's the point) |
 
-**Data freshness**: the Sackmann archive (rich per-match stats) is the primary source;
-`etl/fetch_recent.py` tops up the current season from
-[tennis-data.co.uk](http://www.tennis-data.co.uk) (updated within days of play), matching
-players onto archive ids and deduplicating overlap. Topped-up matches have scores and
-ranks but no serve stats, so they appear unrated ("—") until the archive catches up.
+**Data freshness**: refreshed **automatically every Monday** by a GitHub Actions workflow
+that re-runs the ETL, retrains both models, and pushes an incremental update to the live D1
+database (see [DEPLOY.md](DEPLOY.md#weekly-automatic-refresh)). The Sackmann archive (rich
+per-match stats) is the primary source; `etl/fetch_recent.py` tops up the current season
+from [tennis-data.co.uk](http://www.tennis-data.co.uk) (updated within days of play),
+matching players onto archive ids and deduplicating overlap. Topped-up matches have scores
+and ranks but no serve stats, so they appear unrated ("—") until the archive catches up.
 
 ## Stack
 

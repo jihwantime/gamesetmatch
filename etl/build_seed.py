@@ -52,20 +52,22 @@ def sql_literal(v) -> str:
     return str(int(v))
 
 
+def insert_statements(table: str, columns: list[str], rows: list[tuple], verb: str = "INSERT") -> str:
+    """Batched multi-row INSERT statements as one SQL string."""
+    out = []
+    for start in range(0, len(rows), ROWS_PER_INSERT):
+        batch = rows[start : start + ROWS_PER_INSERT]
+        values = ",\n".join("(" + ",".join(sql_literal(v) for v in row) + ")" for row in batch)
+        out.append(f"{verb} INTO {table} ({','.join(columns)}) VALUES\n{values};\n")
+    return "".join(out)
+
+
 def write_inserts(table: str, columns: list[str], rows: list[tuple], stem: str) -> None:
     """Write batched multi-row INSERTs, split across files of ROWS_PER_FILE rows."""
     for file_no, file_start in enumerate(range(0, len(rows), ROWS_PER_FILE)):
         chunk = rows[file_start : file_start + ROWS_PER_FILE]
         path = OUT / f"{stem}_{file_no:02d}.sql"
-        with path.open("w") as f:
-            for start in range(0, len(chunk), ROWS_PER_INSERT):
-                batch = chunk[start : start + ROWS_PER_INSERT]
-                values = ",\n".join(
-                    "(" + ",".join(sql_literal(v) for v in row) + ")" for row in batch
-                )
-                f.write(
-                    f"INSERT INTO {table} ({','.join(columns)}) VALUES\n{values};\n"
-                )
+        path.write_text(insert_statements(table, columns, chunk))
         print(f"wrote {path.name}: {len(chunk)} rows")
 
 
@@ -122,6 +124,17 @@ def load_rankings(player_ids: set[int]) -> pd.DataFrame:
         & (df["rank"] <= MAX_RANK)
         & (df["player"].isin(player_ids))
     ]
+    # derived current snapshot from fetch_recent.py, when newer than the archive's
+    derived = DATA / "recent_rankings.csv"
+    if derived.exists():
+        d = pd.read_csv(derived)
+        d = d.rename(columns={"player_id": "player"})
+        d = d[d["player"].isin(player_ids)]
+        for c in ("ranking_date", "rank", "player", "points"):
+            d[c] = pd.to_numeric(d[c], errors="coerce").astype("Int64")
+        df = pd.concat([df, d[["ranking_date", "rank", "player", "points"]]], ignore_index=True)
+        print(f"including derived ranking snapshot: {len(d)} rows")
+
     df = df.drop_duplicates(subset=["ranking_date", "rank", "player"])
     df = df.sort_values(["ranking_date", "rank"])
     return df[["ranking_date", "rank", "player", "points"]]
@@ -153,11 +166,18 @@ def main() -> None:
         "02_rankings",
     )
 
+    latest_ranking = int(rankings["ranking_date"].max()) if len(rankings) else 0
+    derived_snapshot = (DATA / "recent_rankings.csv").exists()
     meta = [
-        ("dataset", "Aneeshers/tennis-sackmann-archive (atp, 2000-2025)"),
+        ("dataset", "Aneeshers/tennis-sackmann-archive (atp) + tennis-data.co.uk current season"),
         ("build_date", date.today().isoformat()),
         ("ratings", "yes" if RATINGS_CSV.exists() else "no"),
         ("elo", "yes" if ELO_CSV.exists() else "no"),
+        ("latest_match", str(int(matches["tourney_date"].max()))),
+        ("latest_ranking", str(latest_ranking)),
+        # the newest ranking snapshot is re-ranked from official points observed in
+        # recent matches when the archive's own ranking table lags behind
+        ("latest_ranking_derived", "yes" if derived_snapshot else "no"),
     ]
     write_inserts("meta", ["key", "value"], meta, "03_meta")
 
