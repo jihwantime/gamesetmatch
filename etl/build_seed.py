@@ -17,6 +17,8 @@ DATA = ROOT / "etl" / "data"
 OUT = ROOT / "etl" / "out"
 RATINGS_CSV = ROOT / "ml" / "out" / "ratings.csv"
 ELO_CSV = ROOT / "ml" / "out" / "elo.csv"
+LIVE_RANKINGS_CSV = DATA / "live_rankings.csv"
+LIVE_COLS = ["rank", "player_id", "points", "as_of"]
 
 YEARS = range(2000, 2027)
 MAX_RANK = 300          # rankings kept per week (leaderboard + sparklines)
@@ -174,6 +176,13 @@ def main() -> None:
         elo_cols = ["player_id", "elo", "elo_hard", "elo_clay", "elo_grass", "elo_carpet", "matches", "peak_elo"]
         write_inserts("player_elo", elo_cols, list(elo[elo_cols].itertuples(index=False, name=None)), "04_elo")
         print(f"{len(elo)} player_elo rows")
+
+    if LIVE_RANKINGS_CSV.exists():
+        live = pd.read_csv(LIVE_RANKINGS_CSV)
+        live = live[live["player_id"].isin(player_ids)]
+        write_inserts("live_rankings", LIVE_COLS,
+                      list(live[LIVE_COLS].itertuples(index=False, name=None)), "05_live")
+        print(f"{len(live)} live_rankings rows")
 
 
 if __name__ == "__main__":

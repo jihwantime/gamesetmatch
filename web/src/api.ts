@@ -151,6 +151,7 @@ export const api = {
       date: number | null;
       entries: LeaderboardEntry[];
       updated: string | null;
+      live: { as_of: number; entries: LeaderboardEntry[] } | null;
     }>("/api/leaderboard"),
   h2h: (id1: number, id2: number) => get<H2H>(`/api/h2h/${id1}/${id2}`),
   predict: (p1: number, p2: number, surface?: string) => {

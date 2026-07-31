@@ -40,8 +40,12 @@ jobs:
       - name: Download source data
         run: python etl/download.py
 
-      - name: Fetch current season + derive ranking snapshot
+      - name: Fetch current season results
         run: python etl/fetch_recent.py
+
+      # never fails the run: falls back to the archive snapshot alone
+      - name: Fetch live ATP top 20
+        run: python etl/fetch_live_rankings.py
 
       - name: Train per-match performance ratings
         run: python ml/train_rating.py

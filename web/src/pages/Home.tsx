@@ -11,8 +11,10 @@ export default function Home() {
 
   useEffect(() => {
     api.leaderboard().then((r) => {
-      setTop(r.entries.slice(0, 10));
-      setDate(r.date);
+      // prefer the current week's board; fall back to the archive snapshot
+      const board = r.live ?? { entries: r.entries, as_of: r.date };
+      setTop(board.entries.slice(0, 10));
+      setDate(board.as_of);
     }).catch(() => {});
   }, []);
 

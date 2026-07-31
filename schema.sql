@@ -1,5 +1,6 @@
 -- GameSetMatch D1 schema. Applied by `npm run db:reset` before seeding.
 
+DROP TABLE IF EXISTS live_rankings;
 DROP TABLE IF EXISTS player_elo;
 DROP TABLE IF EXISTS meta;
 DROP TABLE IF EXISTS rankings;
@@ -64,6 +65,16 @@ CREATE INDEX idx_rankings_date ON rankings (ranking_date, rank);
 CREATE TABLE meta (
   key TEXT PRIMARY KEY,
   value TEXT NOT NULL
+);
+
+-- Current ATP top 20 from etl/fetch_live_rankings.py (Wikipedia, updated weekly).
+-- Kept separate from `rankings` on purpose: it is a single consistent week, and
+-- must never be merged into the archive's snapshots (see fetch_live_rankings.py).
+CREATE TABLE live_rankings (
+  rank INTEGER PRIMARY KEY,
+  player_id INTEGER NOT NULL REFERENCES players(id),
+  points INTEGER,
+  as_of INTEGER NOT NULL   -- yyyymmdd
 );
 
 -- Current Elo ratings (overall + per surface), from ml/train_elo.py. Used by the

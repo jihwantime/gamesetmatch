@@ -184,10 +184,29 @@ export async function getLeaderboard(db: D1Database, date?: number) {
     .all<{ key: string; value: string }>();
   const byKey = Object.fromEntries(meta.results.map((m) => [m.key, m.value]));
 
+  // Current top 20 (Wikipedia, weekly). Deliberately a separate board with its
+  // own date rather than merged into the archive snapshot above.
+  const { results: live } = await db
+    .prepare(
+      `SELECT l.rank, l.points, l.as_of, p.id, p.full_name, p.ioc,
+              (SELECT AVG(rating) FROM (
+                 SELECT CASE WHEN m.winner_id = p.id THEN m.winner_rating ELSE m.loser_rating END AS rating
+                 FROM matches m
+                 WHERE (m.winner_id = p.id OR m.loser_id = p.id)
+                   AND (CASE WHEN m.winner_id = p.id THEN m.winner_rating ELSE m.loser_rating END) IS NOT NULL
+                 ORDER BY m.tourney_date DESC, m.match_num DESC
+                 LIMIT 20
+               )) AS avg_rating
+       FROM live_rankings l JOIN players p ON p.id = l.player_id
+       ORDER BY l.rank`
+    )
+    .all<{ as_of: number }>();
+
   return {
     date: snapshot,
     entries: results,
     updated: byKey.build_date ?? null,
+    live: live.length ? { as_of: live[0].as_of, entries: live } : null,
   };
 }
 

@@ -6,7 +6,8 @@ into a seeded D1 database.
 ```sh
 python3 -m venv .venv && .venv/bin/pip install -r etl/requirements.txt
 .venv/bin/python etl/download.py     # CSVs → etl/data/ (gitignored, ~40MB)
-.venv/bin/python etl/fetch_recent.py # current season + derived ranking snapshot
+.venv/bin/python etl/fetch_recent.py # current season results
+.venv/bin/python etl/fetch_live_rankings.py  # live ATP top 20 (optional)
 .venv/bin/python etl/build_seed.py   # cleaned INSERT batches → etl/out/*.sql
 npm run db:reset                     # schema.sql + seeds → local D1 (.wrangler/)
 ```
@@ -23,6 +24,14 @@ Notes:
 - Scope is ATP tour-level matches 2000–2025 (~65k matches, ~3k players).
 - Rankings are trimmed to weekly top-300 snapshots from 2000 on — enough for the
   leaderboard and player rank sparklines while keeping the DB small.
+- **Two ranking tables, never merged.** `rankings` holds the archive's official
+  weekly snapshots (correct, but published a few weeks late). `live_rankings`
+  holds the current ATP top 20 scraped from Wikipedia by `fetch_live_rankings.py`.
+  They are displayed as separate, separately-dated boards because ranking points
+  are a rolling 52-week total — combining two different weeks yields a table where
+  a player who stopped playing keeps stale points and outranks active players.
+  `fetch_live_rankings.py` writes nothing (rather than failing) if the page layout
+  changes, so the refresh degrades to archive-only.
 - `build_seed.py` joins `ml/out/ratings.csv` into the matches seed when it exists
   (see `ml/`); until then the `winner_rating` / `loser_rating` columns are NULL.
 - Walkovers and matches without recorded stats keep NULL stat columns.

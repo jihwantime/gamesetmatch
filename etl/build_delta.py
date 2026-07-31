@@ -34,6 +34,8 @@ sys.path.insert(0, str(Path(__file__).parent))
 from build_seed import (  # noqa: E402
     DATA,
     ELO_CSV,
+    LIVE_COLS,
+    LIVE_RANKINGS_CSV,
     MATCH_COLS,
     OUT,
     RATINGS_CSV,
@@ -110,6 +112,14 @@ def main() -> None:
         parts.append("DELETE FROM player_elo;\n")
         parts.append(insert_statements("player_elo", ELO_COLS,
                                        list(elo[ELO_COLS].itertuples(index=False, name=None))))
+
+    if LIVE_RANKINGS_CSV.exists():
+        live = pd.read_csv(LIVE_RANKINGS_CSV)
+        live = live[live["player_id"].isin(player_ids)]
+        parts.append("\n-- 4b. live top-20 board (replaced wholesale each run)\n")
+        parts.append("DELETE FROM live_rankings;\n")
+        parts.append(insert_statements("live_rankings", LIVE_COLS,
+                                       list(live[LIVE_COLS].itertuples(index=False, name=None))))
 
     meta = [
         ("build_date", date.today().isoformat()),
