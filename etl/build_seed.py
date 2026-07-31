@@ -124,17 +124,8 @@ def load_rankings(player_ids: set[int]) -> pd.DataFrame:
         & (df["rank"] <= MAX_RANK)
         & (df["player"].isin(player_ids))
     ]
-    # derived current snapshot from fetch_recent.py, when newer than the archive's
-    derived = DATA / "recent_rankings.csv"
-    if derived.exists():
-        d = pd.read_csv(derived)
-        d = d.rename(columns={"player_id": "player"})
-        d = d[d["player"].isin(player_ids)]
-        for c in ("ranking_date", "rank", "player", "points"):
-            d[c] = pd.to_numeric(d[c], errors="coerce").astype("Int64")
-        df = pd.concat([df, d[["ranking_date", "rank", "player", "points"]]], ignore_index=True)
-        print(f"including derived ranking snapshot: {len(d)} rows")
-
+    # Official archive snapshots only — see fetch_recent.py for why a "current"
+    # snapshot cannot be derived from match-time ranking points.
     df = df.drop_duplicates(subset=["ranking_date", "rank", "player"])
     df = df.sort_values(["ranking_date", "rank"])
     return df[["ranking_date", "rank", "player", "points"]]
@@ -167,7 +158,6 @@ def main() -> None:
     )
 
     latest_ranking = int(rankings["ranking_date"].max()) if len(rankings) else 0
-    derived_snapshot = (DATA / "recent_rankings.csv").exists()
     meta = [
         ("dataset", "Aneeshers/tennis-sackmann-archive (atp) + tennis-data.co.uk current season"),
         ("build_date", date.today().isoformat()),
@@ -175,9 +165,6 @@ def main() -> None:
         ("elo", "yes" if ELO_CSV.exists() else "no"),
         ("latest_match", str(int(matches["tourney_date"].max()))),
         ("latest_ranking", str(latest_ranking)),
-        # the newest ranking snapshot is re-ranked from official points observed in
-        # recent matches when the archive's own ranking table lags behind
-        ("latest_ranking_derived", "yes" if derived_snapshot else "no"),
     ]
     write_inserts("meta", ["key", "value"], meta, "03_meta")
 

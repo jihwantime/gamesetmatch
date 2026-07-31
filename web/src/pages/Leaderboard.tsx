@@ -21,8 +21,8 @@ export default function Leaderboard() {
     <Layout>
       <h1 className="font-display text-4xl font-bold tracking-wide text-white">ATP Rankings</h1>
       <p className="mt-1 text-sm text-slate-500">
-        Rankings as of {formatDate(date)}. Form is the player's average ML performance rating
-        over their last 20 matches.
+        Official ATP ranking snapshot of {formatDate(date)}. Form is the player's average ML
+        performance rating over their last 20 matches.
         {updated && <> Data refreshed weekly — last update {updated}.</>}
       </p>
       {!entries ? (

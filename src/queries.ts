@@ -180,7 +180,7 @@ export async function getLeaderboard(db: D1Database, date?: number) {
 
   // freshness info so the page can say how current the data is
   const meta = await db
-    .prepare(`SELECT key, value FROM meta WHERE key IN ('build_date','latest_ranking_derived')`)
+    .prepare(`SELECT key, value FROM meta WHERE key = 'build_date'`)
     .all<{ key: string; value: string }>();
   const byKey = Object.fromEntries(meta.results.map((m) => [m.key, m.value]));
 
@@ -188,7 +188,6 @@ export async function getLeaderboard(db: D1Database, date?: number) {
     date: snapshot,
     entries: results,
     updated: byKey.build_date ?? null,
-    derived: byKey.latest_ranking_derived === "yes",
   };
 }
 

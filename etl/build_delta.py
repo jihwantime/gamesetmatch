@@ -82,7 +82,6 @@ def main() -> None:
         (rankings["ranking_date"] >= args.rankings_since)
         & (rankings["ranking_date"] <= official_max)
     ]
-    rank_derived = rankings[rankings["ranking_date"] > official_max]
 
     parts: list[str] = ["-- gamesetmatch incremental refresh\n"]
 
@@ -100,11 +99,9 @@ def main() -> None:
     parts.append(insert_statements("rankings", RANKING_COLS,
                                    list(rank_new.itertuples(index=False, name=None)),
                                    "INSERT OR IGNORE"))
+    # clears any snapshot newer than the official one, including the derived
+    # snapshots written by earlier versions of this pipeline
     parts.append(f"DELETE FROM rankings WHERE ranking_date > {official_max};\n")
-    if len(rank_derived):
-        parts.append(insert_statements("rankings", RANKING_COLS,
-                                       list(rank_derived.itertuples(index=False, name=None)),
-                                       "INSERT OR IGNORE"))
 
     if ELO_CSV.exists():
         elo = pd.read_csv(ELO_CSV)
@@ -119,18 +116,18 @@ def main() -> None:
         ("ratings", "yes" if RATINGS_CSV.exists() else "no"),
         ("elo", "yes" if ELO_CSV.exists() else "no"),
         ("latest_match", str(int(matches["tourney_date"].max()))),
-        ("latest_ranking", str(int(rankings["ranking_date"].max()))),
-        ("latest_ranking_derived", "yes" if len(rank_derived) else "no"),
+        ("latest_ranking", str(official_max)),
     ]
+    parts.append("DELETE FROM meta WHERE key = 'latest_ranking_derived';\n")
     parts.append("\n-- 5. meta\n")
     parts.append(insert_statements("meta", ["key", "value"], meta, "INSERT OR REPLACE"))
 
     path = OUT / "delta.sql"
     path.write_text("".join(parts))
-    rows = len(players) + len(season) + len(rank_new) + len(rank_derived) + len(meta)
+    rows = len(players) + len(season) + len(rank_new) + len(meta)
     print(
         f"wrote {path} — {len(players)} players, {len(season)} season matches, "
-        f"{len(rank_new)} official + {len(rank_derived)} derived ranking rows "
+        f"{len(rank_new)} ranking rows through official snapshot {official_max} "
         f"(~{rows} row writes, {path.stat().st_size // 1024} KB)"
     )
 

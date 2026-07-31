@@ -7,12 +7,14 @@ rows into the Sackmann matches-CSV column layout (stat columns empty -> those
 matches stay unrated in the app), dedupes anything the archive already covers,
 and writes etl/data/recent_matches.csv for build_seed.py to append.
 
-It also writes etl/data/recent_rankings.csv: a current ranking snapshot built by
-taking the newest official ranking table and overlaying the rank points each
-player carried in their most recent match (tennis-data's WPts/LPts are the
-official ATP points at match time). Ranks are then recomputed from those points.
-This keeps the leaderboard current between the archive's ranking releases; the
-snapshot is flagged as derived in the `meta` table.
+Rankings are deliberately NOT derived here. ATP points are a rolling 52-week
+total that decays as old results expire, so the points a player carried into
+their last match are only valid for that week. Stitching each player's
+most-recent-match points into one table mixes values from different weeks and
+produces a ranking that is internally inconsistent (a player who last played in
+April keeps April's total while everyone else moves on). The leaderboard
+therefore uses the archive's official ranking snapshots only, which lag by a few
+weeks but are correct as of the date they are labelled with.
 """
 
 import re
@@ -201,60 +203,6 @@ def main() -> None:
     if unmatched:
         print(f"unmatched names ({len(unmatched)}): {sorted(unmatched)[:15]}")
 
-    build_ranking_snapshot(td, index)
-
-
-def build_ranking_snapshot(td: pd.DataFrame, index: dict[tuple[str, str], int]) -> None:
-    """Write a current ranking snapshot to etl/data/recent_rankings.csv.
-
-    Starts from the newest official snapshot in the archive, overlays the ranking
-    points each player carried into their most recent match this season, then
-    re-ranks by points. Players who haven't played recently keep their archived
-    points, so the table stays complete rather than shrinking to active players.
-    """
-    official = pd.read_csv(DATA / "atp_rankings_current.csv", low_memory=False)
-    for c in ("ranking_date", "rank", "player", "points"):
-        official[c] = pd.to_numeric(official[c], errors="coerce")
-    latest_date = int(official["ranking_date"].max())
-    base = official[official["ranking_date"] == latest_date]
-    base = base[base["rank"] <= MAX_RANK]
-
-    # newest (points, date) observed per player in the season file
-    obs: dict[int, tuple[int, int]] = {}
-    for _, r in td.iterrows():
-        for name, pts in ((r["Winner"], r["WPts"]), (r["Loser"], r["LPts"])):
-            pid = match_player(str(name), index)
-            if pid is None or pd.isna(pts):
-                continue
-            d = int(pd.to_datetime(r["Date"]).strftime("%Y%m%d"))
-            if pid not in obs or d >= obs[pid][1]:
-                obs[pid] = (int(pts), d)
-
-    snapshot_date = max((d for _, d in obs.values()), default=0)
-    if snapshot_date <= latest_date:
-        print(f"official snapshot {latest_date} is current; no derived snapshot written")
-        (DATA / "recent_rankings.csv").unlink(missing_ok=True)
-        return
-
-    points: dict[int, int] = {int(r["player"]): int(r["points"]) for _, r in base.iterrows()
-                             if not pd.isna(r["points"])}
-    updated = 0
-    for pid, (pts, _) in obs.items():
-        if points.get(pid) != pts:
-            updated += 1
-        points[pid] = pts
-
-    snap = pd.DataFrame({"player_id": list(points), "points": list(points.values())})
-    snap = snap.sort_values("points", ascending=False).head(MAX_RANK).reset_index(drop=True)
-    snap["rank"] = snap.index + 1
-    snap["ranking_date"] = snapshot_date
-    snap[["ranking_date", "rank", "player_id", "points"]].to_csv(
-        DATA / "recent_rankings.csv", index=False
-    )
-    print(
-        f"derived ranking snapshot {snapshot_date}: {len(snap)} players "
-        f"({updated} point totals newer than official {latest_date})"
-    )
 
 
 if __name__ == "__main__":
