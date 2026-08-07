@@ -1,0 +1,94 @@
+// Presentation helpers, ported from the Cloudflare build.
+
+const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
+export function formatDate(yyyymmdd: number | null | undefined): string {
+  if (!yyyymmdd) return "—";
+  const y = Math.floor(yyyymmdd / 10000);
+  const m = Math.floor((yyyymmdd % 10000) / 100);
+  const d = yyyymmdd % 100;
+  return `${MONTHS[m - 1] ?? "?"} ${d}, ${y}`;
+}
+
+export function ageFromDob(dob: number | null | undefined): number | null {
+  if (!dob) return null;
+  const now = new Date();
+  const nowNum = now.getFullYear() * 10000 + (now.getMonth() + 1) * 100 + now.getDate();
+  return Math.floor((nowNum - dob) / 10000);
+}
+
+export const LEVEL_NAMES: Record<string, string> = {
+  G: "Grand Slam", M: "Masters 1000", A: "ATP Tour",
+  F: "Tour Finals", D: "Davis Cup", O: "Olympics",
+};
+
+export const LEVEL_CHIP: Record<string, string> = {
+  G: "Grand Slam", M: "ATP 1000", A: "ATP",
+  F: "ATP Finals", D: "Davis Cup", O: "Olympics",
+};
+
+export const ROUND_NAMES: Record<string, string> = {
+  F: "Final", SF: "Semifinal", QF: "Quarterfinal", R16: "Round of 16",
+  R32: "Round of 32", R64: "Round of 64", R128: "Round of 128",
+  RR: "Round Robin", BR: "Bronze match",
+};
+
+const IOC_TO_ISO2: Record<string, string> = {
+  AHO: "CW", ALB: "AL", ALG: "DZ", AND: "AD", ARG: "AR", ARM: "AM", AUS: "AU",
+  AUT: "AT", AZE: "AZ", BAH: "BS", BAR: "BB", BEL: "BE", BIH: "BA", BLR: "BY",
+  BOL: "BO", BRA: "BR", BRN: "BH", BUL: "BG", CAN: "CA", CHI: "CL", CHN: "CN",
+  CIV: "CI", COL: "CO", CRC: "CR", CRO: "HR", CYP: "CY", CZE: "CZ", DEN: "DK",
+  DOM: "DO", ECU: "EC", EGY: "EG", ESA: "SV", ESP: "ES", EST: "EE", FIN: "FI",
+  FRA: "FR", GBR: "GB", GEO: "GE", GER: "DE", GRE: "GR", GUA: "GT", HAI: "HT",
+  HKG: "HK", HUN: "HU", INA: "ID", IND: "IN", IRI: "IR", IRL: "IE", ISR: "IL",
+  ISL: "IS", ITA: "IT", JAM: "JM", JPN: "JP", JOR: "JO", KAZ: "KZ", KEN: "KE",
+  KGZ: "KG", KOR: "KR", KSA: "SA", KUW: "KW", LAT: "LV", LIB: "LB", LTU: "LT",
+  LUX: "LU", MAR: "MA", MDA: "MD", MEX: "MX", MKD: "MK", MNE: "ME", MON: "MC",
+  NED: "NL", NGR: "NG", NOR: "NO", NZL: "NZ", PAK: "PK", PAN: "PA", PAR: "PY",
+  PER: "PE", PHI: "PH", POL: "PL", POR: "PT", PUR: "PR", QAT: "QA", ROU: "RO",
+  RSA: "ZA", RUS: "RU", SLO: "SI", SRB: "RS", SUI: "CH", SVK: "SK", SWE: "SE",
+  THA: "TH", TJK: "TJ", TOG: "TG", TPE: "TW", TTO: "TT", TUN: "TN", TUR: "TR",
+  UAE: "AE", UKR: "UA", URU: "UY", USA: "US", UZB: "UZ", VEN: "VE", VIE: "VN",
+  ZIM: "ZW",
+};
+
+export function flagEmoji(ioc: string | null | undefined): string {
+  const iso = ioc ? IOC_TO_ISO2[ioc] : undefined;
+  if (!iso) return "🏳️";
+  return String.fromCodePoint(...[...iso].map((c) => 0x1f1e6 + c.charCodeAt(0) - 65));
+}
+
+// Rating tiers. The number is always rendered next to the colour, so colour is
+// never the only signal.
+export function ratingTier(rating: number | null | undefined): { label: string; className: string } {
+  if (rating == null) return { label: "—", className: "bg-white/5 text-slate-600" };
+  if (rating >= 8.5) return { label: rating.toFixed(1), className: "bg-win text-black" };
+  if (rating >= 7) return { label: rating.toFixed(1), className: "bg-win/15 text-win" };
+  if (rating >= 5) return { label: rating.toFixed(1), className: "bg-white/10 text-slate-200" };
+  if (rating >= 3.5) return { label: rating.toFixed(1), className: "bg-white/5 text-slate-400" };
+  return { label: rating.toFixed(1), className: "bg-loss/15 text-loss" };
+}
+
+export type SetCell = { mine: number; theirs: number; tb: number | null; won: boolean };
+
+export function parseSets(score: string | null, playerWon: boolean): SetCell[] | null {
+  if (!score || /W\/O/i.test(score)) return null;
+  const cells: SetCell[] = [];
+  for (const token of score.split(/\s+/)) {
+    const m = token.match(/^(\d+)-(\d+)(?:\((\d+)\))?$/);
+    if (!m) continue;
+    const [w, l] = [Number(m[1]), Number(m[2])];
+    const mine = playerWon ? w : l;
+    const theirs = playerWon ? l : w;
+    cells.push({ mine, theirs, tb: m[3] ? Number(m[3]) : null, won: mine > theirs });
+  }
+  return cells.length > 0 ? cells : null;
+}
+
+export function pct(num: number | null, den: number | null): number | null {
+  if (num == null || den == null || den === 0) return null;
+  return (num / den) * 100;
+}
+
+export const WIN_COLOR = "#b4f416";
+export const LOSS_COLOR = "#f97316";
