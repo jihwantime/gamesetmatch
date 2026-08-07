@@ -55,7 +55,12 @@ def main() -> None:
     url = os.environ.get("DATABASE_URL")
     if not url:
         sys.exit("set DATABASE_URL, e.g. postgresql://you@localhost:5432/gamesetmatch")
-    url = url.split("?")[0]  # psycopg doesn't want Prisma's ?schema= parameter
+    # Drop Prisma's ?schema= (psycopg rejects it) but keep everything else —
+    # hosted Postgres like Neon requires sslmode/channel_binding to connect.
+    if "?" in url:
+        base, _, query = url.partition("?")
+        kept = [p for p in query.split("&") if p and not p.startswith("schema=")]
+        url = base + ("?" + "&".join(kept) if kept else "")
 
     matches = load_matches()
     player_ids = set(matches["winner_id"].dropna()) | set(matches["loser_id"].dropna())
