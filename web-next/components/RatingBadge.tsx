@@ -1,5 +1,5 @@
-import { ratingTier } from "@/lib/format";
-
+// Quiet by default: the number carries the meaning, colour only marks the
+// extremes so a table of ratings doesn't turn into a traffic light.
 export default function RatingBadge({
   rating,
   size = "md",
@@ -7,15 +7,23 @@ export default function RatingBadge({
   rating: number | null;
   size?: "md" | "lg";
 }) {
-  const tier = ratingTier(rating);
+  if (rating == null) {
+    return <span className={`tabular-nums text-white/25 ${size === "lg" ? "text-2xl" : "text-[15px]"}`}>—</span>;
+  }
+  const tone =
+    rating >= 8.5 ? "text-win"
+    : rating >= 7 ? "text-white"
+    : rating >= 5 ? "text-white/75"
+    : rating >= 3.5 ? "text-white/45"
+    : "text-loss/80";
   return (
     <span
       title="ML performance rating (0–10)"
-      className={`inline-flex items-center justify-center rounded-lg font-display font-semibold tabular-nums ${tier.className} ${
-        size === "lg" ? "px-3 py-1 text-2xl" : "min-w-10 px-2 py-0.5 text-base"
+      className={`tabular-nums tracking-tight ${tone} ${
+        size === "lg" ? "text-[32px] font-semibold" : "text-[15px] font-medium"
       }`}
     >
-      {tier.label}
+      {rating.toFixed(1)}
     </span>
   );
 }

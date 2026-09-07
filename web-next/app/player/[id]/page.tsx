@@ -27,8 +27,6 @@ export default async function PlayerPage({ params, searchParams }: Params) {
   const surface = sp.surface || undefined;
   const year = Number(sp.year) || undefined;
 
-  // Filters live in the URL, so every filtered view is server-rendered and
-  // shareable rather than being client state.
   const [profile, history, matchPage, recent] = await Promise.all([
     getPlayerProfile(id),
     getRankHistory(id),
@@ -40,98 +38,85 @@ export default async function PlayerPage({ params, searchParams }: Params) {
   const age = ageFromDob(profile.dob);
   const total = profile.wins + profile.losses;
   const winPct = total > 0 ? (profile.wins / total) * 100 : 0;
-  const initials = `${profile.firstName?.[0] ?? ""}${profile.lastName?.[0] ?? ""}`;
   const totalPages = Math.max(1, Math.ceil(matchPage.total / matchPage.pageSize));
   const lastTen = recent.matches.slice(0, 10).reverse();
   const lastTenWins = lastTen.filter((m) => m.result === "W").length;
 
+  const bio = [
+    age != null ? `Age ${age}` : null,
+    profile.height ? `${profile.height} cm` : null,
+    profile.hand === "R" ? "Right-handed" : profile.hand === "L" ? "Left-handed" : null,
+  ].filter(Boolean);
+
   return (
-    <>
-      <div className="rounded-3xl bg-card p-6 sm:p-8">
-        <div className="flex flex-wrap items-center gap-6">
-          <div className="relative">
-            <div className="flex h-24 w-24 items-center justify-center rounded-full bg-card-2 font-display text-3xl font-bold text-slate-300">
-              {initials}
-            </div>
-            {profile.latest_rank != null && (
-              <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 rounded-full bg-win px-2.5 py-0.5 font-display text-sm font-bold text-black">
-                #{profile.latest_rank}
-              </span>
-            )}
-          </div>
-          <div className="min-w-0 flex-1">
-            <div className="flex flex-wrap items-center gap-2 text-xs">
-              <span className="rounded-full bg-white/5 px-3 py-1 font-medium text-slate-300">ATP Tour</span>
-              <span className="text-slate-400">{flagEmoji(profile.ioc)} {profile.ioc}</span>
-            </div>
-            <h1 className="mt-1 font-display text-5xl font-bold leading-none tracking-wide text-white">
-              {profile.fullName}
-            </h1>
-            <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-slate-400">
-              {age != null && <span>Age {age}</span>}
-              {profile.height && <><span className="text-slate-700">|</span><span>{profile.height} cm</span></>}
-              {profile.hand && (
-                <>
-                  <span className="text-slate-700">|</span>
-                  <span>{profile.hand === "R" ? "Right-Handed" : profile.hand === "L" ? "Left-Handed" : "Unknown hand"}</span>
-                </>
-              )}
-              <span className="text-slate-700">|</span>
-              <span>Active {formatDate(profile.first_match)} – {formatDate(profile.last_match)}</span>
-            </div>
-          </div>
-          <div className="flex flex-wrap items-center gap-6 rounded-2xl bg-ink/60 px-6 py-4">
-            <HeaderStat label="W–L" value={`${profile.wins}–${profile.losses}`} />
-            <Divider />
-            <HeaderStat label="Titles" value={String(profile.titles ?? 0)} />
-            <Divider />
-            <HeaderStat label="Career High" value={profile.best_rank ? `#${profile.best_rank}` : "—"} />
-            <Divider />
-            <HeaderStat label="Win Rate" value={`${winPct.toFixed(0)}%`} accent />
-            <Divider />
-            <div className="flex flex-col items-center gap-1">
-              <RatingBadge rating={profile.avg_rating} size="lg" />
-              <span className="text-[10px] uppercase tracking-wider text-slate-500">avg rating</span>
-            </div>
-          </div>
+    <div className="mx-auto max-w-3xl px-6 py-16">
+      <header>
+        <div className="flex items-center gap-2 text-[13px] text-white/40">
+          <span>{flagEmoji(profile.ioc)}</span>
+          <span>{profile.ioc}</span>
+          {profile.latest_rank != null && (
+            <>
+              <span className="text-white/20">·</span>
+              <span>World No. {profile.latest_rank}</span>
+            </>
+          )}
         </div>
-      </div>
+        <h1 className="mt-2 text-[44px] font-semibold leading-[1.05] tracking-[-0.035em] text-white">
+          {profile.fullName}
+        </h1>
+        <p className="mt-3 text-[15px] text-white/45">
+          {bio.join(" · ")}
+          {bio.length > 0 && " · "}
+          Active {formatDate(profile.first_match)} – {formatDate(profile.last_match)}
+        </p>
+      </header>
+
+      {/* Career figures as a quiet stat row rather than boxed cards. */}
+      <dl className="mt-12 grid grid-cols-2 gap-x-8 gap-y-8 border-y border-white/[0.08] py-8 sm:grid-cols-4">
+        <Stat label="Win–loss" value={`${profile.wins}\u2013${profile.losses}`} note={`${winPct.toFixed(1)}%`} />
+        <Stat label="Titles" value={String(profile.titles ?? 0)} />
+        <Stat label="Career high" value={profile.best_rank ? `No. ${profile.best_rank}` : "—"} />
+        <div>
+          <dt className="text-[11px] uppercase tracking-[0.08em] text-white/30">Avg rating</dt>
+          <dd className="mt-1.5">
+            <RatingBadge rating={profile.avg_rating} size="lg" />
+          </dd>
+        </div>
+      </dl>
 
       <RankHistoryToggle history={history} />
 
-      <div className="mt-6 grid gap-6 lg:grid-cols-[300px_1fr]">
-        <div className="space-y-6">
-          <section className="rounded-3xl bg-card p-5">
-            <h2 className="mb-4 font-display text-xl font-semibold text-white">Career</h2>
-            <div className="flex items-end justify-between">
-              <div>
-                <div className="font-display text-4xl font-bold text-win">▲ {winPct.toFixed(1)}%</div>
-                <div className="mt-0.5 text-xs text-slate-500">{profile.wins} Wins</div>
-              </div>
-              <div className="text-right">
-                <div className="font-display text-4xl font-bold text-loss">▼ {(100 - winPct).toFixed(1)}%</div>
-                <div className="mt-0.5 text-xs text-slate-500">{profile.losses} Losses</div>
-              </div>
-            </div>
-            <div className="mt-3 flex h-2.5 gap-[2px] overflow-hidden rounded-full">
-              <div className="rounded-l-full bg-win" style={{ width: `${winPct}%` }} />
-              <div className="flex-1 rounded-r-full bg-loss" />
-            </div>
-            <div className="mt-4 grid grid-cols-2 gap-3">
-              <div className="rounded-2xl bg-card-2 px-4 py-3 text-center">
-                <div className="font-display text-2xl font-bold text-white">{profile.titles ?? 0}</div>
-                <div className="text-xs text-slate-500">Titles</div>
-              </div>
-              <div className="rounded-2xl bg-card-2 px-4 py-3 text-center">
-                <div className="font-display text-2xl font-bold text-white">{total}</div>
-                <div className="text-xs text-slate-500">Matches</div>
-              </div>
-            </div>
-          </section>
+      <div className="mt-14 grid gap-14 sm:grid-cols-[1fr_200px] sm:gap-10">
+        <div className="order-2 sm:order-1">
+          <div className="mb-6 flex flex-wrap items-baseline justify-between gap-3">
+            <h2 className="text-[22px] font-semibold tracking-tight text-white">
+              Matches <span className="text-[15px] font-normal text-white/30">{matchPage.total}</span>
+            </h2>
+            <MatchFilters surface={surface ?? ""} year={sp.year ?? ""} />
+          </div>
 
-          <section className="rounded-3xl bg-card p-5">
-            <h2 className="mb-4 font-display text-xl font-semibold text-white">By Surface</h2>
-            <div className="space-y-3">
+          <div className="border-t border-white/[0.07]">
+            {matchPage.matches.map((m) => (
+              <MatchRow key={m.id} m={m} />
+            ))}
+          </div>
+          {matchPage.matches.length === 0 && (
+            <p className="py-12 text-center text-[14px] text-white/30">No matches for this filter.</p>
+          )}
+
+          {totalPages > 1 && (
+            <div className="mt-8 flex items-center justify-between text-[14px]">
+              <PageLink id={id} sp={sp} page={page - 1} disabled={page <= 1}>← Newer</PageLink>
+              <span className="text-white/30">{page} / {totalPages}</span>
+              <PageLink id={id} sp={sp} page={page + 1} disabled={page >= totalPages}>Older →</PageLink>
+            </div>
+          )}
+        </div>
+
+        <aside className="order-1 space-y-10 sm:order-2">
+          <section>
+            <h2 className="mb-4 text-[11px] uppercase tracking-[0.08em] text-white/30">By surface</h2>
+            <div className="space-y-4">
               {profile.surfaces.map((s) => (
                 <WinLossBar key={s.surface} label={s.surface} wins={s.wins} losses={s.losses} />
               ))}
@@ -139,12 +124,11 @@ export default async function PlayerPage({ params, searchParams }: Params) {
           </section>
 
           {lastTen.length > 0 && (
-            <section className="rounded-3xl bg-card p-5">
+            <section>
               <div className="mb-4 flex items-baseline justify-between">
-                <h2 className="font-display text-xl font-semibold text-white">Last 10</h2>
-                <span className="text-xs tabular-nums text-slate-400">
-                  <span className="font-semibold text-win">{lastTenWins}W</span>{" "}
-                  <span className="text-slate-500">{lastTen.length - lastTenWins}L</span>
+                <h2 className="text-[11px] uppercase tracking-[0.08em] text-white/30">Last 10</h2>
+                <span className="text-[13px] tabular-nums text-white/45">
+                  {lastTenWins}–{lastTen.length - lastTenWins}
                 </span>
               </div>
               <div className="flex flex-wrap gap-1.5">
@@ -152,9 +136,9 @@ export default async function PlayerPage({ params, searchParams }: Params) {
                   <Link
                     key={m.id}
                     href={`/match/${m.id}`}
-                    title={`${m.result === "W" ? "def." : "lost to"} ${m.opponent_name} · ${m.tourney_name} ${m.round}`}
-                    className={`flex h-7 w-7 items-center justify-center rounded-full font-display text-sm font-bold ${
-                      m.result === "W" ? "bg-win text-black" : "bg-loss text-black"
+                    title={`${m.result === "W" ? "def." : "lost to"} ${m.opponent_name} · ${m.tourney_name}`}
+                    className={`flex h-6 w-6 items-center justify-center rounded-full text-[11px] font-medium transition-transform hover:scale-110 ${
+                      m.result === "W" ? "bg-win/20 text-win" : "bg-loss/20 text-loss"
                     }`}
                   >
                     {m.result}
@@ -163,35 +147,21 @@ export default async function PlayerPage({ params, searchParams }: Params) {
               </div>
             </section>
           )}
-        </div>
-
-        <div>
-          <div className="mb-4 flex flex-wrap items-center gap-2">
-            <h2 className="mr-auto font-display text-3xl font-bold text-white">
-              Match History <span className="text-lg font-semibold text-slate-500">({matchPage.total})</span>
-            </h2>
-            <MatchFilters surface={surface ?? ""} year={sp.year ?? ""} />
-          </div>
-
-          <div className="space-y-2">
-            {matchPage.matches.map((m) => (
-              <MatchRow key={m.id} m={m} />
-            ))}
-            {matchPage.matches.length === 0 && (
-              <div className="py-10 text-center text-sm text-slate-500">No matches for this filter.</div>
-            )}
-          </div>
-
-          {totalPages > 1 && (
-            <div className="mt-4 flex items-center justify-center gap-3 text-sm">
-              <PageLink id={id} sp={sp} page={page - 1} disabled={page <= 1}>← Prev</PageLink>
-              <span className="text-slate-500">Page {page} / {totalPages}</span>
-              <PageLink id={id} sp={sp} page={page + 1} disabled={page >= totalPages}>Next →</PageLink>
-            </div>
-          )}
-        </div>
+        </aside>
       </div>
-    </>
+    </div>
+  );
+}
+
+function Stat({ label, value, note }: { label: string; value: string; note?: string }) {
+  return (
+    <div>
+      <dt className="text-[11px] uppercase tracking-[0.08em] text-white/30">{label}</dt>
+      <dd className="mt-1.5 whitespace-nowrap text-[24px] font-semibold tabular-nums tracking-tight text-white">
+        {value}
+      </dd>
+      {note && <dd className="mt-0.5 text-[13px] tabular-nums text-white/35">{note}</dd>}
+    </div>
   );
 }
 
@@ -200,23 +170,11 @@ function PageLink({
 }: {
   id: number; sp: Record<string, string>; page: number; disabled: boolean; children: React.ReactNode;
 }) {
-  const cls = "rounded-full bg-card px-4 py-1.5 text-slate-300";
-  if (disabled) return <span className={`${cls} opacity-40`}>{children}</span>;
+  if (disabled) return <span className="text-white/15">{children}</span>;
   const q = new URLSearchParams({ ...sp, page: String(page) });
-  return <Link href={`/player/${id}?${q}`} className={`${cls} hover:bg-card-2`}>{children}</Link>;
-}
-
-function HeaderStat({ label, value, accent = false }: { label: string; value: string; accent?: boolean }) {
   return (
-    <div className="text-center">
-      <div className="text-[10px] uppercase tracking-wider text-slate-500">{label}</div>
-      <div className={`mt-0.5 font-display text-3xl font-bold tabular-nums ${accent ? "text-win" : "text-white"}`}>
-        {value}
-      </div>
-    </div>
+    <Link href={`/player/${id}?${q}`} className="text-white/50 transition-colors hover:text-white">
+      {children}
+    </Link>
   );
-}
-
-function Divider() {
-  return <div className="h-10 w-px bg-white/10" />;
 }

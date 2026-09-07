@@ -22,7 +22,7 @@ export default function SiteHeader() {
       <div className="mx-auto flex max-w-6xl items-center gap-8 px-6 py-5">
         <Link
           href="/"
-          className={`font-sf text-[15px] font-semibold tracking-tight ${
+          className={`text-[15px] font-semibold tracking-tight ${
             overlay ? "text-white" : "text-white"
           }`}
         >

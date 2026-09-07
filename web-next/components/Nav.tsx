@@ -18,7 +18,7 @@ export default function Nav({ overlay = false }: { overlay?: boolean }) {
           <Link
             key={t.href}
             href={t.href}
-            className={`font-sf text-[15px] tracking-tight transition-colors ${
+            className={`text-[15px] tracking-tight transition-colors ${
               active
                 ? "text-white"
                 : overlay

@@ -63,7 +63,7 @@ export default function HeroSearch() {
         }}
         placeholder="Search a player"
         aria-label="Search players"
-        className="w-full rounded-full border border-white/20 bg-black/25 px-6 py-3.5 text-center font-sf text-[16px] tracking-tight text-white shadow-2xl backdrop-blur-xl transition-colors placeholder:text-white/45 focus:border-white/40 focus:bg-black/35 focus:outline-none"
+        className="w-full rounded-full border border-white/20 bg-black/25 px-6 py-3.5 text-center text-[16px] tracking-tight text-white shadow-2xl backdrop-blur-xl transition-colors placeholder:text-white/45 focus:border-white/40 focus:bg-black/35 focus:outline-none"
       />
       {open && results.length > 0 && (
         <ul className="absolute z-30 mt-2 w-full overflow-hidden rounded-2xl border border-white/10 bg-black/70 shadow-2xl backdrop-blur-2xl">
@@ -72,7 +72,7 @@ export default function HeroSearch() {
               <button
                 onMouseDown={(e) => { e.preventDefault(); go(p); }}
                 onMouseEnter={() => setActive(i)}
-                className={`flex w-full items-center gap-3 px-5 py-2.5 text-left font-sf text-[14px] tracking-tight transition-colors ${
+                className={`flex w-full items-center gap-3 px-5 py-2.5 text-left text-[14px] tracking-tight transition-colors ${
                   i === active ? "bg-white/10 text-white" : "text-white/70"
                 }`}
               >

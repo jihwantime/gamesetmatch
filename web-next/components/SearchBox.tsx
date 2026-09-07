@@ -61,23 +61,24 @@ export default function SearchBox({ large = false }: { large?: boolean }) {
         }}
         placeholder="Search a player…"
         aria-label="Search players"
-        className={`w-full rounded-full border border-white/10 bg-card text-slate-100 placeholder-slate-500
-          focus:border-win/60 focus:outline-none ${large ? "px-6 py-3.5 text-center text-lg" : "px-4 py-1.5 text-sm"}`}
+        className={`w-full rounded-full bg-white/[0.06] tracking-tight text-white transition-colors placeholder:text-white/35 hover:bg-white/[0.09] focus:bg-white/[0.11] focus:outline-none ${
+          large ? "px-6 py-3.5 text-center text-[16px]" : "px-4 py-1.5 text-[13px]"
+        }`}
       />
       {open && results.length > 0 && (
-        <ul className="absolute z-20 mt-2 w-full overflow-hidden rounded-2xl border border-white/10 bg-card shadow-2xl">
+        <ul className="absolute z-20 mt-2 w-full overflow-hidden rounded-2xl border border-white/10 bg-[#131316]/95 shadow-2xl backdrop-blur-xl">
           {results.map((p, i) => (
             <li key={p.id}>
               <button
                 onMouseDown={(e) => { e.preventDefault(); go(p); }}
                 onMouseEnter={() => setActive(i)}
-                className={`flex w-full items-center gap-2 px-4 py-2 text-left text-sm ${
-                  i === active ? "bg-card-2 text-white" : "text-slate-300"
+                className={`flex w-full items-center gap-2.5 px-4 py-2.5 text-left text-[14px] tracking-tight transition-colors ${
+                  i === active ? "bg-white/[0.08] text-white" : "text-white/65"
                 }`}
               >
                 <span>{flagEmoji(p.ioc)}</span>
                 <span className="flex-1">{p.full_name}</span>
-                <span className="text-xs text-slate-500">{p.total_matches} matches</span>
+                <span className="text-[12px] tabular-nums text-white/30">{p.total_matches}</span>
               </button>
             </li>
           ))}

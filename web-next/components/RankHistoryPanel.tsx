@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { formatDate, WIN_COLOR } from "@/lib/format";
+import { formatDate } from "@/lib/format";
 
 type RankPoint = { ranking_date: number; rank: number; points: number | null };
 
@@ -9,7 +9,7 @@ type RankPoint = { ranking_date: number; rank: number; points: number | null };
 export default function RankHistoryPanel({ history }: { history: RankPoint[] }) {
   const [mode, setMode] = useState<"monthly" | "alltime">("monthly");
   if (history.length < 2) {
-    return <div className="py-6 text-center text-sm text-slate-500">Not enough ranking data.</div>;
+    return <div className="py-6 text-center text-[14px] text-white/30">Not enough ranking data.</div>;
   }
 
   let pts: RankPoint[];
@@ -39,16 +39,16 @@ export default function RankHistoryPanel({ history }: { history: RankPoint[] }) 
       : `${MONTHS[Math.floor((d % 10000) / 100) - 1]} '${String(Math.floor(d / 10000) % 100).padStart(2, "0")}`;
 
   return (
-    <section className="rounded-3xl bg-card p-5">
+    <section>
       <div className="mb-2 flex items-center justify-between">
-        <h2 className="font-display text-xl font-semibold text-white">Rank History</h2>
-        <div className="flex gap-1 rounded-full bg-card-2 p-1 text-sm">
+        <h2 className="text-[11px] uppercase tracking-[0.08em] text-white/30">Ranking history</h2>
+        <div className="flex gap-1 rounded-full bg-white/[0.06] p-1">
           {(["monthly", "alltime"] as const).map((m) => (
             <button
               key={m}
               onClick={() => setMode(m)}
-              className={`rounded-full px-4 py-1 font-semibold ${
-                mode === m ? "bg-white/10 text-white" : "text-slate-500 hover:text-slate-300"
+              className={`rounded-full px-3.5 py-1 text-[13px] tracking-tight transition-colors ${
+                mode === m ? "bg-white text-black" : "text-white/50 hover:text-white/90"
               }`}
             >
               {m === "monthly" ? "Monthly" : "All time"}
@@ -63,26 +63,25 @@ export default function RankHistoryPanel({ history }: { history: RankPoint[] }) 
         aria-label={`Ranking history, best rank ${minRank}`}
       >
         <line x1={SIDE - 20} x2={W - SIDE + 20} y1={H - BOTTOM + 12} y2={H - BOTTOM + 12} stroke="#ffffff14" />
-        <polyline points={line} fill="none" stroke={WIN_COLOR} strokeWidth="2.5" strokeLinejoin="round" />
+        <polyline points={line} fill="none" stroke="rgba(255,255,255,0.85)" strokeWidth="2.5" strokeLinejoin="round" />
         {pts.map((p, i) => (
           <g key={p.ranking_date}>
-            <circle cx={x(i)} cy={y(p.rank)} r="4.5" fill={WIN_COLOR} stroke="#0b0b0a" strokeWidth="2.5" />
-            <text x={x(i)} y={y(p.rank) - 26} textAnchor="middle" className="font-display"
-                  fontSize="17" fontWeight="700" fill="#fff">
+            <circle cx={x(i)} cy={y(p.rank)} r="4.5" fill="#ffffff" stroke="#08080a" strokeWidth="2.5" />
+            <text x={x(i)} y={y(p.rank) - 26} textAnchor="middle" fontSize="15" fontWeight="600" fill="#fff">
               #{p.rank}
             </text>
             {p.points != null && (
-              <text x={x(i)} y={y(p.rank) - 11} textAnchor="middle" fontSize="10.5" fill="#94a3b8">
+              <text x={x(i)} y={y(p.rank) - 11} textAnchor="middle" fontSize="10.5" fill="rgba(255,255,255,0.45)">
                 {p.points.toLocaleString()} pts
               </text>
             )}
-            <text x={x(i)} y={H - BOTTOM + 30} textAnchor="middle" fontSize="11" fill="#64748b">
+            <text x={x(i)} y={H - BOTTOM + 30} textAnchor="middle" fontSize="11" fill="rgba(255,255,255,0.3)">
               {fmtAxis(p.ranking_date)}
             </text>
           </g>
         ))}
       </svg>
-      <p className="mt-1 text-center text-[11px] text-slate-600">
+      <p className="mt-2 text-center text-[11px] text-white/25">
         {formatDate(pts[0].ranking_date)} – {formatDate(pts[pts.length - 1].ranking_date)}
       </p>
     </section>

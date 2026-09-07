@@ -2,7 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import RatingBadge from "@/components/RatingBadge";
 import { getHeadToHead, getMatch } from "@/lib/queries";
-import { flagEmoji, formatDate, LEVEL_NAMES, LOSS_COLOR, pct, ROUND_NAMES, WIN_COLOR } from "@/lib/format";
+import { flagEmoji, formatDate, LEVEL_NAMES, pct, ROUND_NAMES } from "@/lib/format";
 
 type M = Record<string, any>; // raw row: the stat columns are wide and dynamic
 
@@ -14,8 +14,8 @@ export default async function MatchPage({ params }: { params: Promise<{ id: stri
 
   const h2h = await getHeadToHead(match.winner_id, match.loser_id);
   const hasStats = match.w_svpt != null && match.l_svpt != null;
-
   const minus = (a: number | null, b: number | null) => (a == null || b == null ? null : a - b);
+
   const rows = hasStats
     ? [
         stat("Aces", match.w_ace, match.l_ace),
@@ -30,51 +30,46 @@ export default async function MatchPage({ params }: { params: Promise<{ id: stri
     : [];
 
   return (
-    <div className="mx-auto max-w-3xl">
-      <div className="text-center">
-        <div className="text-sm text-slate-400">
-          {match.tourney_name}
-          {match.tourney_level && <> · {LEVEL_NAMES[match.tourney_level] ?? match.tourney_level}</>}
-          {match.surface && <> · <span className="text-sky-400">{match.surface}</span></>}
-        </div>
-        <div className="mt-1 text-xs text-slate-500">
-          {ROUND_NAMES[match.round] ?? match.round} · {formatDate(match.tourney_date)}
-          {match.minutes != null && (
-            <> · 🕐 {Math.floor(match.minutes / 60)}:{String(match.minutes % 60).padStart(2, "0")}</>
-          )}
-        </div>
+    <div className="mx-auto max-w-2xl px-6 py-16">
+      <div className="text-center text-[13px] text-white/40">
+        {match.tourney_name}
+        {match.tourney_level && <> · {LEVEL_NAMES[match.tourney_level] ?? match.tourney_level}</>}
+        {match.surface && <> · {match.surface}</>}
+      </div>
+      <div className="mt-1 text-center text-[13px] text-white/25">
+        {ROUND_NAMES[match.round] ?? match.round} · {formatDate(match.tourney_date)}
+        {match.minutes != null && (
+          <> · {Math.floor(match.minutes / 60)}h {match.minutes % 60}m</>
+        )}
       </div>
 
-      <div className="mt-6 grid grid-cols-[1fr_auto_1fr] items-center gap-4 rounded-3xl bg-card p-8">
+      <div className="mt-10 grid grid-cols-[1fr_auto_1fr] items-center gap-6">
         <PlayerSide id={match.winner_id} name={match.winner_name} ioc={match.winner_ioc}
                     rank={match.winner_rank} rating={match.winner_rating} won />
-        <div className="text-center">
-          <div className="font-display text-4xl font-bold tabular-nums text-white">{match.score ?? "—"}</div>
-          <div className="mt-1 text-[10px] uppercase tracking-wider text-slate-500">best of {match.best_of}</div>
+        <div className="text-center text-[15px] tabular-nums tracking-tight text-white/80">
+          {match.score ?? "—"}
         </div>
         <PlayerSide id={match.loser_id} name={match.loser_name} ioc={match.loser_ioc}
-                    rank={match.loser_rank} rating={match.loser_rating} />
+                    rank={match.loser_rank} rating={match.loser_rating} align="right" />
       </div>
 
-      <div className="mt-3 text-center text-xs text-slate-500">
-        Head-to-head:{" "}
-        <span className="text-slate-300">
-          {match.winner_name} {h2h.p1_wins} – {h2h.p2_wins} {match.loser_name}
-        </span>
-      </div>
+      <p className="mt-8 text-center text-[13px] text-white/35">
+        Head to head · {match.winner_name.split(" ").pop()} {h2h.p1_wins}–{h2h.p2_wins}{" "}
+        {match.loser_name.split(" ").pop()}
+      </p>
 
       {hasStats ? (
-        <section className="mt-6 rounded-3xl bg-card p-8">
-          <h2 className="mb-5 text-center font-display text-2xl font-semibold text-white">Match Stats</h2>
-          <div className="space-y-4">
-            {rows.map((r) => <StatBarRow key={r.label} {...r} />)}
+        <section className="mt-14">
+          <h2 className="mb-6 text-[11px] uppercase tracking-[0.08em] text-white/30">Match stats</h2>
+          <div className="space-y-5">
+            {rows.map((r) => <StatRow key={r.label} {...r} />)}
           </div>
         </section>
       ) : (
-        <div className="mt-6 text-center text-sm text-slate-500">
+        <p className="mt-14 text-center text-[14px] text-white/30">
           No detailed stats recorded for this match
           {typeof match.score === "string" && match.score.includes("W/O") ? " (walkover)" : ""}.
-        </div>
+        </p>
       )}
     </div>
   );
@@ -82,66 +77,61 @@ export default async function MatchPage({ params }: { params: Promise<{ id: stri
 
 function stat(label: string, w: number | null, l: number | null) {
   const max = Math.max(w ?? 0, l ?? 0, 1);
-  return {
-    label,
-    w: w?.toString() ?? "—",
-    l: l?.toString() ?? "—",
-    wVal: w == null ? null : (w / max) * 100,
-    lVal: l == null ? null : (l / max) * 100,
-  };
+  return { label, w: w?.toString() ?? "—", l: l?.toString() ?? "—",
+           wVal: w == null ? null : (w / max) * 100, lVal: l == null ? null : (l / max) * 100 };
 }
 
 function pctStat(label: string, wNum: number | null, wDen: number | null, lNum: number | null, lDen: number | null) {
   const w = pct(wNum, wDen);
   const l = pct(lNum, lDen);
-  return {
-    label,
-    w: w == null ? "—" : `${w.toFixed(0)}% (${wNum}/${wDen})`,
-    l: l == null ? "—" : `${l.toFixed(0)}% (${lNum}/${lDen})`,
-    wVal: w,
-    lVal: l,
-  };
+  return { label,
+    w: w == null ? "—" : `${w.toFixed(0)}%`,
+    l: l == null ? "—" : `${l.toFixed(0)}%`,
+    wVal: w, lVal: l };
 }
 
-function StatBarRow({ label, w, l, wVal, lVal }: {
+// Mirrored bars meeting at a centred label — the winner's side reads brighter.
+function StatRow({ label, w, l, wVal, lVal }: {
   label: string; w: string; l: string; wVal: number | null; lVal: number | null;
 }) {
   return (
     <div>
-      <div className="mb-1 grid grid-cols-[1fr_auto_1fr] text-xs">
-        <span className="tabular-nums text-slate-200">{w}</span>
-        <span className="text-slate-500">{label}</span>
-        <span className="text-right tabular-nums text-slate-200">{l}</span>
+      <div className="mb-1.5 grid grid-cols-[1fr_auto_1fr] items-baseline text-[13px]">
+        <span className="tabular-nums text-white/85">{w}</span>
+        <span className="text-white/35">{label}</span>
+        <span className="text-right tabular-nums text-white/85">{l}</span>
       </div>
-      <div className="grid grid-cols-2 gap-[2px]">
-        <div className="flex h-2 justify-end overflow-hidden rounded-l-full bg-white/5">
-          <div style={{ width: `${wVal ?? 0}%`, background: WIN_COLOR }} className="rounded-l-full" />
+      <div className="grid grid-cols-2 gap-[3px]">
+        <div className="flex h-[3px] justify-end overflow-hidden rounded-l-full bg-white/[0.07]">
+          <div className="rounded-l-full bg-white/70" style={{ width: `${wVal ?? 0}%` }} />
         </div>
-        <div className="flex h-2 overflow-hidden rounded-r-full bg-white/5">
-          <div style={{ width: `${lVal ?? 0}%`, background: LOSS_COLOR }} className="rounded-r-full" />
+        <div className="flex h-[3px] overflow-hidden rounded-r-full bg-white/[0.07]">
+          <div className="rounded-r-full bg-white/40" style={{ width: `${lVal ?? 0}%` }} />
         </div>
       </div>
     </div>
   );
 }
 
-function PlayerSide({ id, name, ioc, rank, rating, won = false }: {
-  id: number; name: string; ioc: string | null; rank: number | null; rating: number | null; won?: boolean;
+function PlayerSide({ id, name, ioc, rank, rating, won = false, align = "left" }: {
+  id: number; name: string; ioc: string | null; rank: number | null;
+  rating: number | null; won?: boolean; align?: "left" | "right";
 }) {
   return (
-    <div className="text-center">
-      <div className={`mb-1.5 inline-block rounded-full px-3 py-0.5 font-display text-xs font-bold uppercase tracking-wider ${
-        won ? "bg-win text-black" : "bg-loss text-black"
-      }`}>
-        {won ? "Winner" : "Loser"}
+    <div className={align === "right" ? "text-right" : "text-left"}>
+      <div className="text-[11px] uppercase tracking-[0.08em] text-white/30">
+        {won ? "Winner" : "Runner-up"}
       </div>
-      <div>
-        <Link href={`/player/${id}`} className="font-display text-2xl font-semibold text-white hover:underline">
-          {flagEmoji(ioc)} {name}
-        </Link>
-      </div>
-      <div className="mt-1 text-xs text-slate-500">{rank != null ? `Rank #${rank}` : "Unranked"}</div>
-      <div className="mt-2"><RatingBadge rating={rating} /></div>
+      <Link
+        href={`/player/${id}`}
+        className={`mt-1.5 block text-[20px] tracking-tight transition-colors hover:text-white/70 ${
+          won ? "text-white" : "text-white/60"
+        }`}
+      >
+        {flagEmoji(ioc)} {name}
+      </Link>
+      <div className="mt-1 text-[13px] text-white/30">{rank != null ? `No. ${rank}` : "Unranked"}</div>
+      <div className="mt-3"><RatingBadge rating={rating} /></div>
     </div>
   );
 }
