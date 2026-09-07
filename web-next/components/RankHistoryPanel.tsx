@@ -42,13 +42,13 @@ export default function RankHistoryPanel({ history }: { history: RankPoint[] }) 
     <section>
       <div className="mb-2 flex items-center justify-between">
         <h2 className="text-[11px] uppercase tracking-[0.08em] text-white/30">Ranking history</h2>
-        <div className="flex gap-1 rounded-full bg-white/[0.06] p-1">
+        <div className="flex gap-5">
           {(["monthly", "alltime"] as const).map((m) => (
             <button
               key={m}
               onClick={() => setMode(m)}
-              className={`rounded-full px-3.5 py-1 text-[13px] tracking-tight transition-colors ${
-                mode === m ? "bg-white text-black" : "text-white/50 hover:text-white/90"
+              className={`border-b pb-1 text-[13px] tracking-tight transition-colors ${
+                mode === m ? "border-white text-white" : "border-transparent text-white/40 hover:text-white/80"
               }`}
             >
               {m === "monthly" ? "Monthly" : "All time"}

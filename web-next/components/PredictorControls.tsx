@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import SearchIcon from "./SearchIcon";
 import { flagEmoji } from "@/lib/format";
 
 type Pick = { id: number; full_name: string; ioc: string | null };
@@ -29,13 +30,15 @@ export default function PredictorControls({
         <span className="text-[13px] uppercase tracking-[0.1em] text-white/25">vs</span>
         <PlayerPicker selected={p2} onSelect={(p) => setParam("p2", p ? String(p.id) : "")} />
       </div>
-      <div className="mt-5 flex justify-center gap-1 rounded-full bg-white/[0.06] p-1 mx-auto w-fit">
+      <div className="mx-auto mt-8 flex w-fit gap-8 border-b border-white/[0.1]">
         {surfaces.map((s) => (
           <button
             key={s}
             onClick={() => setParam("surface", s)}
-            className={`rounded-full px-4 py-1.5 text-[14px] tracking-tight transition-colors ${
-              surface === s ? "bg-white text-black" : "text-white/50 hover:text-white/90"
+            className={`relative -mb-px border-b pb-2.5 text-[14px] tracking-tight transition-colors ${
+              surface === s
+                ? "border-white text-white"
+                : "border-transparent text-white/40 hover:text-white/80"
             }`}
           >
             {s}
@@ -83,21 +86,23 @@ function PlayerPicker({
   return (
     <div ref={boxRef} className="relative">
       <div
-        className={`flex items-center gap-2.5 rounded-2xl px-4 py-3 transition-colors ${
-          selected ? "bg-white/[0.07]" : "bg-white/[0.04] hover:bg-white/[0.06]"
-        }`}
+        className="flex items-center gap-2.5 border-b border-white/[0.16] pb-2 transition-colors focus-within:border-white/45"
       >
-        {selected && <span className="text-[18px]">{flagEmoji(selected.ioc)}</span>}
+        {selected ? (
+          <span className="text-[17px]">{flagEmoji(selected.ioc)}</span>
+        ) : (
+          <SearchIcon className="h-4 w-4 shrink-0 text-white/35" />
+        )}
         <input
           value={q}
           onChange={(e) => setQ(e.target.value)}
           onFocus={() => results.length > 0 && setOpen(true)}
           placeholder="Search a player…"
-          className="w-full bg-transparent text-center text-[17px] tracking-tight text-white placeholder:text-[15px] placeholder:text-white/35 focus:outline-none"
+          className="w-full bg-transparent text-[17px] tracking-tight text-white placeholder:text-[15px] placeholder:text-white/35 focus:outline-none"
         />
       </div>
       {open && results.length > 0 && (
-        <ul className="absolute z-20 mt-2 w-full overflow-hidden rounded-2xl border border-white/10 bg-[#131316]/95 shadow-2xl backdrop-blur-xl">
+        <ul className="absolute z-20 mt-2 w-full overflow-hidden rounded-xl border border-white/10 bg-[#131316]/95 shadow-2xl backdrop-blur-xl">
           {results.map((p) => (
             <li key={p.id}>
               <button

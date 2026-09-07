@@ -22,7 +22,7 @@ export default function MatchFilters({ surface, year }: { surface: string; year:
   };
 
   return (
-    <div className="flex items-center gap-2">
+    <div className="flex items-center gap-5">
       <Select value={surface} onChange={(v) => set("surface", v)}
         options={[{ value: "", label: "All surfaces" }, ...SURFACES.map((s) => ({ value: s, label: s }))]} />
       <Select value={year} onChange={(v) => set("year", v)}
@@ -41,7 +41,7 @@ function Select({
       <select
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="cursor-pointer appearance-none rounded-full bg-white/[0.06] py-1.5 pl-3.5 pr-8 text-[13px] tracking-tight text-white/70 transition-colors hover:bg-white/[0.1] focus:outline-none"
+        className="cursor-pointer appearance-none border-b border-white/[0.14] bg-transparent pb-1 pl-0 pr-5 text-[13px] tracking-tight text-white/60 transition-colors hover:border-white/35 hover:text-white focus:outline-none"
       >
         {options.map((o) => (
           <option key={o.value} value={o.value} className="bg-[#131316] text-white">
@@ -49,7 +49,7 @@ function Select({
           </option>
         ))}
       </select>
-      <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[10px] text-white/40">▾</span>
+      <span className="pointer-events-none absolute right-0 top-1/2 -translate-y-[60%] text-[9px] text-white/35">▾</span>
     </div>
   );
 }
