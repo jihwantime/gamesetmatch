@@ -75,30 +75,30 @@ export default function HeroStage({
       {top.length > 0 && (
         <section className="mx-auto max-w-2xl px-6 py-28">
           <div className="mb-8 flex items-baseline justify-between">
-            <h2 className="text-[28px] font-semibold tracking-[-0.02em] text-white">
+            <h2 className="text-[28px] font-semibold tracking-[-0.02em] text-fg">
               Top ten
             </h2>
-            <span className="text-[13px] text-white/35">{formatDate(asOf)}</span>
+            <span className="text-[13px] text-fg/45">{formatDate(asOf)}</span>
           </div>
 
           <RankTable rows={top} showForm={false} />
 
           <Link
             href="/leaderboard"
-            className="mt-8 inline-block text-[15px] tracking-tight text-white/45 transition-colors hover:text-white"
+            className="mt-8 inline-block text-[15px] tracking-tight text-fg/55 transition-colors hover:text-fg"
           >
             All rankings →
           </Link>
         </section>
       )}
 
-      <footer className="mx-auto max-w-2xl px-6 pb-20 text-[12px] leading-relaxed text-white/25">
+      <footer className="mx-auto max-w-2xl px-6 pb-20 text-[12px] leading-relaxed text-fg/45">
         Match data from{" "}
-        <a className="underline hover:text-white/50" href="https://github.com/JeffSackmann/tennis_atp">
+        <a className="underline hover:text-fg/70" href="https://github.com/JeffSackmann/tennis_atp">
           Jeff Sackmann&apos;s tennis_atp
         </a>{" "}
         (CC BY-NC-SA 4.0) with current-season results from{" "}
-        <a className="underline hover:text-white/50" href="http://www.tennis-data.co.uk">
+        <a className="underline hover:text-fg/70" href="http://www.tennis-data.co.uk">
           tennis-data.co.uk
         </a>
         . Venue photography from Wikimedia Commons under Creative Commons licences.

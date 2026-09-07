@@ -16,14 +16,14 @@ export default function SiteHeader() {
       className={
         overlay
           ? "absolute inset-x-0 top-0 z-30"
-          : "sticky top-0 z-30 border-b border-white/[0.06] bg-ink/80 backdrop-blur-xl"
+          : "sticky top-0 z-30 border-b border-fg/[0.09] bg-ink/80 backdrop-blur-xl"
       }
     >
       <div className="mx-auto flex max-w-6xl items-center gap-8 px-6 py-5">
         <Link
           href="/"
           className={`text-[15px] font-semibold tracking-tight ${
-            overlay ? "text-white" : "text-white"
+            overlay ? "text-white" : "text-fg"
           }`}
         >
           GameSetMatch

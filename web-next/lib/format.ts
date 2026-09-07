@@ -58,17 +58,6 @@ export function flagEmoji(ioc: string | null | undefined): string {
   return String.fromCodePoint(...[...iso].map((c) => 0x1f1e6 + c.charCodeAt(0) - 65));
 }
 
-// Rating tiers. The number is always rendered next to the colour, so colour is
-// never the only signal.
-export function ratingTier(rating: number | null | undefined): { label: string; className: string } {
-  if (rating == null) return { label: "—", className: "bg-white/5 text-slate-600" };
-  if (rating >= 8.5) return { label: rating.toFixed(1), className: "bg-win text-black" };
-  if (rating >= 7) return { label: rating.toFixed(1), className: "bg-win/15 text-win" };
-  if (rating >= 5) return { label: rating.toFixed(1), className: "bg-white/10 text-slate-200" };
-  if (rating >= 3.5) return { label: rating.toFixed(1), className: "bg-white/5 text-slate-400" };
-  return { label: rating.toFixed(1), className: "bg-loss/15 text-loss" };
-}
-
 export type SetCell = { mine: number; theirs: number; tb: number | null; won: boolean };
 
 export function parseSets(score: string | null, playerWon: boolean): SetCell[] | null {
@@ -89,6 +78,3 @@ export function pct(num: number | null, den: number | null): number | null {
   if (num == null || den == null || den === 0) return null;
   return (num / den) * 100;
 }
-
-export const WIN_COLOR = "#b4f416";
-export const LOSS_COLOR = "#f97316";

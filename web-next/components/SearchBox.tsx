@@ -46,8 +46,8 @@ export default function SearchBox() {
 
   return (
     <div ref={boxRef} className="relative w-56">
-      <div className="flex items-center gap-2 border-b border-white/[0.14] pb-1.5 transition-colors focus-within:border-white/45">
-        <SearchIcon className="h-[15px] w-[15px] shrink-0 text-white/35" />
+      <div className="flex items-center gap-2 border-b border-fg/[0.18] pb-1.5 transition-colors focus-within:border-fg/50">
+        <SearchIcon className="h-[15px] w-[15px] shrink-0 text-fg/42" />
         <input
           value={q}
           onChange={(e) => setQ(e.target.value)}
@@ -61,23 +61,23 @@ export default function SearchBox() {
           }}
           placeholder="Search players"
           aria-label="Search players"
-          className="w-full bg-transparent text-[13px] tracking-tight text-white placeholder:text-white/35 focus:outline-none"
+          className="w-full bg-transparent text-[13px] tracking-tight text-fg placeholder:text-fg/42 focus:outline-none"
         />
       </div>
       {open && results.length > 0 && (
-        <ul className="absolute z-20 mt-2 w-full overflow-hidden rounded-xl border border-white/10 bg-[#131316]/95 shadow-2xl backdrop-blur-xl">
+        <ul className="absolute z-20 mt-2 w-full overflow-hidden rounded-xl border border-fg/12 bg-white/90 shadow-xl backdrop-blur-xl">
           {results.map((p, i) => (
             <li key={p.id}>
               <button
                 onMouseDown={(e) => { e.preventDefault(); go(p); }}
                 onMouseEnter={() => setActive(i)}
                 className={`flex w-full items-center gap-2.5 px-4 py-2.5 text-left text-[14px] tracking-tight transition-colors ${
-                  i === active ? "bg-white/[0.08] text-white" : "text-white/65"
+                  i === active ? "bg-fg/[0.07] text-fg" : "text-fg/65"
                 }`}
               >
                 <span>{flagEmoji(p.ioc)}</span>
                 <span className="flex-1 truncate">{p.full_name}</span>
-                <span className="text-[12px] tabular-nums text-white/30">{p.total_matches}</span>
+                <span className="text-[12px] tabular-nums text-fg/40">{p.total_matches}</span>
               </button>
             </li>
           ))}

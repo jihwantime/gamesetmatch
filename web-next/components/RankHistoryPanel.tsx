@@ -9,7 +9,7 @@ type RankPoint = { ranking_date: number; rank: number; points: number | null };
 export default function RankHistoryPanel({ history }: { history: RankPoint[] }) {
   const [mode, setMode] = useState<"monthly" | "alltime">("monthly");
   if (history.length < 2) {
-    return <div className="py-6 text-center text-[14px] text-white/30">Not enough ranking data.</div>;
+    return <div className="py-6 text-center text-[14px] text-fg/40">Not enough ranking data.</div>;
   }
 
   let pts: RankPoint[];
@@ -41,14 +41,14 @@ export default function RankHistoryPanel({ history }: { history: RankPoint[] }) 
   return (
     <section>
       <div className="mb-2 flex items-center justify-between">
-        <h2 className="text-[11px] uppercase tracking-[0.08em] text-white/30">Ranking history</h2>
+        <h2 className="text-[11px] uppercase tracking-[0.08em] text-fg/40">Ranking history</h2>
         <div className="flex gap-5">
           {(["monthly", "alltime"] as const).map((m) => (
             <button
               key={m}
               onClick={() => setMode(m)}
               className={`border-b pb-1 text-[13px] tracking-tight transition-colors ${
-                mode === m ? "border-white text-white" : "border-transparent text-white/40 hover:text-white/80"
+                mode === m ? "border-fg text-fg" : "border-transparent text-fg/45 hover:text-fg/80"
               }`}
             >
               {m === "monthly" ? "Monthly" : "All time"}
@@ -62,26 +62,26 @@ export default function RankHistoryPanel({ history }: { history: RankPoint[] }) 
         role="img"
         aria-label={`Ranking history, best rank ${minRank}`}
       >
-        <line x1={SIDE - 20} x2={W - SIDE + 20} y1={H - BOTTOM + 12} y2={H - BOTTOM + 12} stroke="#ffffff14" />
-        <polyline points={line} fill="none" stroke="rgba(255,255,255,0.85)" strokeWidth="2.5" strokeLinejoin="round" />
+        <line x1={SIDE - 20} x2={W - SIDE + 20} y1={H - BOTTOM + 12} y2={H - BOTTOM + 12} stroke="rgba(0,0,0,0.12)" />
+        <polyline points={line} fill="none" stroke="rgba(29,29,31,0.85)" strokeWidth="2.5" strokeLinejoin="round" />
         {pts.map((p, i) => (
           <g key={p.ranking_date}>
-            <circle cx={x(i)} cy={y(p.rank)} r="4.5" fill="#ffffff" stroke="#08080a" strokeWidth="2.5" />
-            <text x={x(i)} y={y(p.rank) - 26} textAnchor="middle" fontSize="15" fontWeight="600" fill="#fff">
+            <circle cx={x(i)} cy={y(p.rank)} r="4.5" fill="#1d1d1f" stroke="#fbfbfd" strokeWidth="2.5" />
+            <text x={x(i)} y={y(p.rank) - 26} textAnchor="middle" fontSize="15" fontWeight="600" fill="#1d1d1f">
               #{p.rank}
             </text>
             {p.points != null && (
-              <text x={x(i)} y={y(p.rank) - 11} textAnchor="middle" fontSize="10.5" fill="rgba(255,255,255,0.45)">
+              <text x={x(i)} y={y(p.rank) - 11} textAnchor="middle" fontSize="10.5" fill="rgba(0,0,0,0.5)">
                 {p.points.toLocaleString()} pts
               </text>
             )}
-            <text x={x(i)} y={H - BOTTOM + 30} textAnchor="middle" fontSize="11" fill="rgba(255,255,255,0.3)">
+            <text x={x(i)} y={H - BOTTOM + 30} textAnchor="middle" fontSize="11" fill="rgba(0,0,0,0.4)">
               {fmtAxis(p.ranking_date)}
             </text>
           </g>
         ))}
       </svg>
-      <p className="mt-2 text-center text-[11px] text-white/25">
+      <p className="mt-2 text-center text-[11px] text-fg/35">
         {formatDate(pts[0].ranking_date)} – {formatDate(pts[pts.length - 1].ranking_date)}
       </p>
     </section>

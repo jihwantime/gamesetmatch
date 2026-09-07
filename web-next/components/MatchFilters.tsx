@@ -41,15 +41,15 @@ function Select({
       <select
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="cursor-pointer appearance-none border-b border-white/[0.14] bg-transparent pb-1 pl-0 pr-5 text-[13px] tracking-tight text-white/60 transition-colors hover:border-white/35 hover:text-white focus:outline-none"
+        className="cursor-pointer appearance-none border-b border-fg/[0.18] bg-transparent pb-1 pl-0 pr-5 text-[13px] tracking-tight text-fg/60 transition-colors hover:border-fg/42 hover:text-fg focus:outline-none"
       >
         {options.map((o) => (
-          <option key={o.value} value={o.value} className="bg-[#131316] text-white">
+          <option key={o.value} value={o.value} className="bg-white text-fg">
             {o.label}
           </option>
         ))}
       </select>
-      <span className="pointer-events-none absolute right-0 top-1/2 -translate-y-[60%] text-[9px] text-white/35">▾</span>
+      <span className="pointer-events-none absolute right-0 top-1/2 -translate-y-[60%] text-[9px] text-fg/42">▾</span>
     </div>
   );
 }

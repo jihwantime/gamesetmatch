@@ -28,10 +28,10 @@ export default async function PredictPage({
   return (
     <div className="mx-auto max-w-3xl px-6 py-16">
       <header className="mb-12">
-        <h1 className="text-[40px] font-semibold leading-tight tracking-[-0.03em] text-white">
+        <h1 className="text-[40px] font-semibold leading-tight tracking-[-0.03em] text-fg">
           Match prediction
         </h1>
-        <p className="mt-3 max-w-xl text-[16px] leading-relaxed text-white/50">
+        <p className="mt-3 max-w-xl text-[16px] leading-relaxed text-fg/55">
           Win probability from surface-aware Elo ratings — the standard model for tennis
           forecasting. Choose two players and a surface.
         </p>
@@ -45,7 +45,7 @@ export default async function PredictPage({
       />
 
       {!result ? (
-        <p className="mt-20 text-center text-[15px] text-white/25">
+        <p className="mt-20 text-center text-[15px] text-fg/35">
           Select both players to see the prediction.
         </p>
       ) : (
@@ -53,31 +53,31 @@ export default async function PredictPage({
           {/* Headline: the two probabilities, as a single split bar. */}
           <div className="flex items-end justify-between">
             <div>
-              <div className="text-[15px] tracking-tight text-white/60">
+              <div className="text-[15px] tracking-tight text-fg/60">
                 {flagEmoji(result.p1.player.ioc)} {result.p1.player.fullName}
               </div>
-              <div className="mt-1 text-[56px] font-semibold leading-none tracking-[-0.04em] text-white tabular-nums">
+              <div className="mt-1 text-[56px] font-semibold leading-none tracking-[-0.04em] text-fg tabular-nums">
                 {pct1}%
               </div>
             </div>
             <div className="text-right">
-              <div className="text-[15px] tracking-tight text-white/60">
+              <div className="text-[15px] tracking-tight text-fg/60">
                 {result.p2.player.fullName} {flagEmoji(result.p2.player.ioc)}
               </div>
-              <div className="mt-1 text-[56px] font-semibold leading-none tracking-[-0.04em] text-white/45 tabular-nums">
+              <div className="mt-1 text-[56px] font-semibold leading-none tracking-[-0.04em] text-fg/50 tabular-nums">
                 {100 - pct1}%
               </div>
             </div>
           </div>
 
-          <div className="mt-6 flex h-1.5 gap-[2px] overflow-hidden rounded-full bg-white/[0.08]">
-            <div className="rounded-full bg-white/85" style={{ width: `${pct1}%` }} />
-            <div className="flex-1 rounded-full bg-white/25" />
+          <div className="mt-6 flex h-1.5 gap-[2px] overflow-hidden rounded-full bg-fg/[0.07]">
+            <div className="rounded-full bg-fg/85" style={{ width: `${pct1}%` }} />
+            <div className="flex-1 rounded-full bg-fg/35" />
           </div>
 
-          <p className="mt-5 text-[15px] text-white/50">
+          <p className="mt-5 text-[15px] text-fg/55">
             On {surface.toLowerCase()},{" "}
-            <span className="text-white/90">
+            <span className="text-fg/90">
               {result.p1.winProb >= 0.5 ? result.p1.player.fullName : result.p2.player.fullName}
             </span>{" "}
             is favoured.
@@ -88,16 +88,16 @@ export default async function PredictPage({
             <EloPanel side={result.p2} surface={surface} />
           </div>
 
-          <div className="mt-14 border-t border-white/[0.08] pt-6">
-            <div className="text-[11px] uppercase tracking-[0.08em] text-white/30">Head to head</div>
-            <div className="mt-2 text-[28px] font-semibold tabular-nums tracking-tight text-white">
+          <div className="mt-14 border-t border-fg/[0.1] pt-6">
+            <div className="text-[11px] uppercase tracking-[0.08em] text-fg/40">Head to head</div>
+            <div className="mt-2 text-[28px] font-semibold tabular-nums tracking-tight text-fg">
               {result.h2h.p1_wins}
-              <span className="mx-2 text-white/25">–</span>
+              <span className="mx-2 text-fg/35">–</span>
               {result.h2h.p2_wins}
             </div>
             <Link
               href={`/player/${result.p1.playerId}`}
-              className="mt-2 inline-block text-[13px] text-white/35 transition-colors hover:text-white/70"
+              className="mt-2 inline-block text-[13px] text-fg/42 transition-colors hover:text-fg/70"
             >
               {result.p1.player.fullName}&apos;s profile →
             </Link>
@@ -115,7 +115,7 @@ function EloPanel({ side, surface }: { side: Side; surface: string }) {
     <div>
       <Link
         href={`/player/${side.playerId}`}
-        className="text-[17px] tracking-tight text-white transition-colors hover:text-white/70"
+        className="text-[17px] tracking-tight text-fg transition-colors hover:text-fg/70"
       >
         {flagEmoji(side.player.ioc)} {side.player.fullName}
       </Link>
@@ -132,9 +132,9 @@ function EloPanel({ side, surface }: { side: Side; surface: string }) {
 
 function Row({ label, value, strong = false }: { label: string; value: string; strong?: boolean }) {
   return (
-    <div className="flex items-baseline justify-between border-b border-white/[0.06] py-2.5">
-      <dt className="text-[14px] text-white/40">{label}</dt>
-      <dd className={`tabular-nums tracking-tight ${strong ? "text-[17px] text-white" : "text-[15px] text-white/70"}`}>
+    <div className="flex items-baseline justify-between border-b border-fg/[0.09] py-2.5">
+      <dt className="text-[14px] text-fg/45">{label}</dt>
+      <dd className={`tabular-nums tracking-tight ${strong ? "text-[17px] text-fg" : "text-[15px] text-fg/70"}`}>
         {value}
       </dd>
     </div>

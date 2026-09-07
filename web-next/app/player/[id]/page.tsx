@@ -51,20 +51,20 @@ export default async function PlayerPage({ params, searchParams }: Params) {
   return (
     <div className="mx-auto max-w-3xl px-6 py-16">
       <header>
-        <div className="flex items-center gap-2 text-[13px] text-white/40">
+        <div className="flex items-center gap-2 text-[13px] text-fg/45">
           <span>{flagEmoji(profile.ioc)}</span>
           <span>{profile.ioc}</span>
           {profile.latest_rank != null && (
             <>
-              <span className="text-white/20">·</span>
+              <span className="text-fg/30">·</span>
               <span>World No. {profile.latest_rank}</span>
             </>
           )}
         </div>
-        <h1 className="mt-2 text-[44px] font-semibold leading-[1.05] tracking-[-0.035em] text-white">
+        <h1 className="mt-2 text-[44px] font-semibold leading-[1.05] tracking-[-0.035em] text-fg">
           {profile.fullName}
         </h1>
-        <p className="mt-3 text-[15px] text-white/45">
+        <p className="mt-3 text-[15px] text-fg/50">
           {bio.join(" · ")}
           {bio.length > 0 && " · "}
           Active {formatDate(profile.first_match)} – {formatDate(profile.last_match)}
@@ -72,12 +72,12 @@ export default async function PlayerPage({ params, searchParams }: Params) {
       </header>
 
       {/* Career figures as a quiet stat row rather than boxed cards. */}
-      <dl className="mt-12 grid grid-cols-2 gap-x-8 gap-y-8 border-y border-white/[0.08] py-8 sm:grid-cols-4">
+      <dl className="mt-12 grid grid-cols-2 gap-x-8 gap-y-8 border-y border-fg/[0.1] py-8 sm:grid-cols-4">
         <Stat label="Win–loss" value={`${profile.wins}\u2013${profile.losses}`} note={`${winPct.toFixed(1)}%`} />
         <Stat label="Titles" value={String(profile.titles ?? 0)} />
         <Stat label="Career high" value={profile.best_rank ? `No. ${profile.best_rank}` : "—"} />
         <div>
-          <dt className="text-[11px] uppercase tracking-[0.08em] text-white/30">Avg rating</dt>
+          <dt className="text-[11px] uppercase tracking-[0.08em] text-fg/40">Avg rating</dt>
           <dd className="mt-1.5">
             <RatingBadge rating={profile.avg_rating} size="lg" />
           </dd>
@@ -89,25 +89,25 @@ export default async function PlayerPage({ params, searchParams }: Params) {
       <div className="mt-14 grid gap-14 sm:grid-cols-[1fr_200px] sm:gap-10">
         <div className="order-2 sm:order-1">
           <div className="mb-6 flex flex-wrap items-baseline justify-between gap-3">
-            <h2 className="text-[22px] font-semibold tracking-tight text-white">
-              Matches <span className="text-[15px] font-normal text-white/30">{matchPage.total}</span>
+            <h2 className="text-[22px] font-semibold tracking-tight text-fg">
+              Matches <span className="text-[15px] font-normal text-fg/40">{matchPage.total}</span>
             </h2>
             <MatchFilters surface={surface ?? ""} year={sp.year ?? ""} />
           </div>
 
-          <div className="border-t border-white/[0.07]">
+          <div className="border-t border-fg/[0.1]">
             {matchPage.matches.map((m) => (
               <MatchRow key={m.id} m={m} />
             ))}
           </div>
           {matchPage.matches.length === 0 && (
-            <p className="py-12 text-center text-[14px] text-white/30">No matches for this filter.</p>
+            <p className="py-12 text-center text-[14px] text-fg/40">No matches for this filter.</p>
           )}
 
           {totalPages > 1 && (
             <div className="mt-8 flex items-center justify-between text-[14px]">
               <PageLink id={id} sp={sp} page={page - 1} disabled={page <= 1}>← Newer</PageLink>
-              <span className="text-white/30">{page} / {totalPages}</span>
+              <span className="text-fg/40">{page} / {totalPages}</span>
               <PageLink id={id} sp={sp} page={page + 1} disabled={page >= totalPages}>Older →</PageLink>
             </div>
           )}
@@ -115,7 +115,7 @@ export default async function PlayerPage({ params, searchParams }: Params) {
 
         <aside className="order-1 space-y-10 sm:order-2">
           <section>
-            <h2 className="mb-4 text-[11px] uppercase tracking-[0.08em] text-white/30">By surface</h2>
+            <h2 className="mb-4 text-[11px] uppercase tracking-[0.08em] text-fg/40">By surface</h2>
             <div className="space-y-4">
               {profile.surfaces.map((s) => (
                 <WinLossBar key={s.surface} label={s.surface} wins={s.wins} losses={s.losses} />
@@ -126,8 +126,8 @@ export default async function PlayerPage({ params, searchParams }: Params) {
           {lastTen.length > 0 && (
             <section>
               <div className="mb-4 flex items-baseline justify-between">
-                <h2 className="text-[11px] uppercase tracking-[0.08em] text-white/30">Last 10</h2>
-                <span className="text-[13px] tabular-nums text-white/45">
+                <h2 className="text-[11px] uppercase tracking-[0.08em] text-fg/40">Last 10</h2>
+                <span className="text-[13px] tabular-nums text-fg/50">
                   {lastTenWins}–{lastTen.length - lastTenWins}
                 </span>
               </div>
@@ -156,11 +156,11 @@ export default async function PlayerPage({ params, searchParams }: Params) {
 function Stat({ label, value, note }: { label: string; value: string; note?: string }) {
   return (
     <div>
-      <dt className="text-[11px] uppercase tracking-[0.08em] text-white/30">{label}</dt>
-      <dd className="mt-1.5 whitespace-nowrap text-[24px] font-semibold tabular-nums tracking-tight text-white">
+      <dt className="text-[11px] uppercase tracking-[0.08em] text-fg/40">{label}</dt>
+      <dd className="mt-1.5 whitespace-nowrap text-[24px] font-semibold tabular-nums tracking-tight text-fg">
         {value}
       </dd>
-      {note && <dd className="mt-0.5 text-[13px] tabular-nums text-white/35">{note}</dd>}
+      {note && <dd className="mt-0.5 text-[13px] tabular-nums text-fg/42">{note}</dd>}
     </div>
   );
 }
@@ -170,10 +170,10 @@ function PageLink({
 }: {
   id: number; sp: Record<string, string>; page: number; disabled: boolean; children: React.ReactNode;
 }) {
-  if (disabled) return <span className="text-white/15">{children}</span>;
+  if (disabled) return <span className="text-fg/25">{children}</span>;
   const q = new URLSearchParams({ ...sp, page: String(page) });
   return (
-    <Link href={`/player/${id}?${q}`} className="text-white/50 transition-colors hover:text-white">
+    <Link href={`/player/${id}?${q}`} className="text-fg/55 transition-colors hover:text-fg">
       {children}
     </Link>
   );

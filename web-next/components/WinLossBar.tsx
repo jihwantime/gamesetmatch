@@ -14,18 +14,18 @@ export default function WinLossBar({
   return (
     <div>
       <div className="mb-2 flex items-baseline justify-between">
-        <span className="text-[14px] tracking-tight text-white/70">{label}</span>
-        <span className="text-[13px] tabular-nums text-white/45">
+        <span className="text-[14px] tracking-tight text-fg/70">{label}</span>
+        <span className="text-[13px] tabular-nums text-fg/50">
           {wins}–{losses}
-          <span className="ml-2 text-white/80">{winPct.toFixed(0)}%</span>
+          <span className="ml-2 text-fg/80">{winPct.toFixed(0)}%</span>
         </span>
       </div>
       <div
-        className="h-1 overflow-hidden rounded-full bg-white/[0.08]"
+        className="h-1 overflow-hidden rounded-full bg-fg/[0.07]"
         role="img"
         aria-label={`${label}: ${wins} wins, ${losses} losses`}
       >
-        <div className="h-full rounded-full bg-white/70" style={{ width: `${winPct}%` }} />
+        <div className="h-full rounded-full bg-fg/70" style={{ width: `${winPct}%` }} />
       </div>
     </div>
   );

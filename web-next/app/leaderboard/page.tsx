@@ -17,10 +17,10 @@ export default async function LeaderboardPage() {
   return (
     <div className="mx-auto max-w-3xl px-6 py-16">
       <header className="mb-14">
-        <h1 className="text-[40px] font-semibold leading-tight tracking-[-0.03em] text-white">
+        <h1 className="text-[40px] font-semibold leading-tight tracking-[-0.03em] text-fg">
           Rankings
         </h1>
-        <p className="mt-3 max-w-xl text-[16px] leading-relaxed text-white/50">
+        <p className="mt-3 max-w-xl text-[16px] leading-relaxed text-fg/55">
           Form is a player&apos;s average performance rating over their last twenty matches.
           {updated && <> Updated weekly — last refreshed {updated}.</>}
         </p>
@@ -29,8 +29,8 @@ export default async function LeaderboardPage() {
       {live && (
         <section className="mb-16">
           <div className="mb-5 flex items-baseline gap-3">
-            <h2 className="text-[22px] font-semibold tracking-tight text-white">Live top 20</h2>
-            <span className="text-[13px] text-white/35">{formatDate(live.as_of)}</span>
+            <h2 className="text-[22px] font-semibold tracking-tight text-fg">Live top 20</h2>
+            <span className="text-[13px] text-fg/42">{formatDate(live.as_of)}</span>
           </div>
           <RankTable rows={live.entries} />
         </section>
@@ -38,8 +38,8 @@ export default async function LeaderboardPage() {
 
       <section>
         <div className="mb-5 flex items-baseline gap-3">
-          <h2 className="text-[22px] font-semibold tracking-tight text-white">Top 100</h2>
-          <span className="text-[13px] text-white/35">
+          <h2 className="text-[22px] font-semibold tracking-tight text-fg">Top 100</h2>
+          <span className="text-[13px] text-fg/42">
             archive snapshot · {formatDate(date)}
           </span>
         </div>
@@ -47,7 +47,7 @@ export default async function LeaderboardPage() {
       </section>
 
       {live && (
-        <p className="mt-10 max-w-xl text-[13px] leading-relaxed text-white/30">
+        <p className="mt-10 max-w-xl text-[13px] leading-relaxed text-fg/40">
           The live board comes from Wikipedia&apos;s weekly ATP release; the full table comes
           from Jeff Sackmann&apos;s archive, which publishes snapshots a few weeks behind. They
           are kept separate because ranking points are a rolling 52-week total — blending two

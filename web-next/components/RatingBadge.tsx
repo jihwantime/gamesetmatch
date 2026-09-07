@@ -8,13 +8,13 @@ export default function RatingBadge({
   size?: "md" | "lg";
 }) {
   if (rating == null) {
-    return <span className={`tabular-nums text-white/25 ${size === "lg" ? "text-2xl" : "text-[15px]"}`}>—</span>;
+    return <span className={`tabular-nums text-fg/35 ${size === "lg" ? "text-2xl" : "text-[15px]"}`}>—</span>;
   }
   const tone =
     rating >= 8.5 ? "text-win"
-    : rating >= 7 ? "text-white"
-    : rating >= 5 ? "text-white/75"
-    : rating >= 3.5 ? "text-white/45"
+    : rating >= 7 ? "text-fg"
+    : rating >= 5 ? "text-fg/75"
+    : rating >= 3.5 ? "text-fg/50"
     : "text-loss/80";
   return (
     <span

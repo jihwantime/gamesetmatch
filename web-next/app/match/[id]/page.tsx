@@ -31,12 +31,12 @@ export default async function MatchPage({ params }: { params: Promise<{ id: stri
 
   return (
     <div className="mx-auto max-w-2xl px-6 py-16">
-      <div className="text-center text-[13px] text-white/40">
+      <div className="text-center text-[13px] text-fg/45">
         {match.tourney_name}
         {match.tourney_level && <> · {LEVEL_NAMES[match.tourney_level] ?? match.tourney_level}</>}
         {match.surface && <> · {match.surface}</>}
       </div>
-      <div className="mt-1 text-center text-[13px] text-white/25">
+      <div className="mt-1 text-center text-[13px] text-fg/35">
         {ROUND_NAMES[match.round] ?? match.round} · {formatDate(match.tourney_date)}
         {match.minutes != null && (
           <> · {Math.floor(match.minutes / 60)}h {match.minutes % 60}m</>
@@ -46,27 +46,27 @@ export default async function MatchPage({ params }: { params: Promise<{ id: stri
       <div className="mt-10 grid grid-cols-[1fr_auto_1fr] items-center gap-6">
         <PlayerSide id={match.winner_id} name={match.winner_name} ioc={match.winner_ioc}
                     rank={match.winner_rank} rating={match.winner_rating} won />
-        <div className="text-center text-[15px] tabular-nums tracking-tight text-white/80">
+        <div className="text-center text-[15px] tabular-nums tracking-tight text-fg/80">
           {match.score ?? "—"}
         </div>
         <PlayerSide id={match.loser_id} name={match.loser_name} ioc={match.loser_ioc}
                     rank={match.loser_rank} rating={match.loser_rating} align="right" />
       </div>
 
-      <p className="mt-8 text-center text-[13px] text-white/35">
+      <p className="mt-8 text-center text-[13px] text-fg/42">
         Head to head · {match.winner_name.split(" ").pop()} {h2h.p1_wins}–{h2h.p2_wins}{" "}
         {match.loser_name.split(" ").pop()}
       </p>
 
       {hasStats ? (
         <section className="mt-14">
-          <h2 className="mb-6 text-[11px] uppercase tracking-[0.08em] text-white/30">Match stats</h2>
+          <h2 className="mb-6 text-[11px] uppercase tracking-[0.08em] text-fg/40">Match stats</h2>
           <div className="space-y-5">
             {rows.map((r) => <StatRow key={r.label} {...r} />)}
           </div>
         </section>
       ) : (
-        <p className="mt-14 text-center text-[14px] text-white/30">
+        <p className="mt-14 text-center text-[14px] text-fg/40">
           No detailed stats recorded for this match
           {typeof match.score === "string" && match.score.includes("W/O") ? " (walkover)" : ""}.
         </p>
@@ -97,16 +97,16 @@ function StatRow({ label, w, l, wVal, lVal }: {
   return (
     <div>
       <div className="mb-1.5 grid grid-cols-[1fr_auto_1fr] items-baseline text-[13px]">
-        <span className="tabular-nums text-white/85">{w}</span>
-        <span className="text-white/35">{label}</span>
-        <span className="text-right tabular-nums text-white/85">{l}</span>
+        <span className="tabular-nums text-fg/85">{w}</span>
+        <span className="text-fg/42">{label}</span>
+        <span className="text-right tabular-nums text-fg/85">{l}</span>
       </div>
       <div className="grid grid-cols-2 gap-[3px]">
-        <div className="flex h-[3px] justify-end overflow-hidden rounded-l-full bg-white/[0.07]">
-          <div className="rounded-l-full bg-white/70" style={{ width: `${wVal ?? 0}%` }} />
+        <div className="flex h-[3px] justify-end overflow-hidden rounded-l-full bg-fg/[0.06]">
+          <div className="rounded-l-full bg-fg/70" style={{ width: `${wVal ?? 0}%` }} />
         </div>
-        <div className="flex h-[3px] overflow-hidden rounded-r-full bg-white/[0.07]">
-          <div className="rounded-r-full bg-white/40" style={{ width: `${lVal ?? 0}%` }} />
+        <div className="flex h-[3px] overflow-hidden rounded-r-full bg-fg/[0.06]">
+          <div className="rounded-r-full bg-fg/45" style={{ width: `${lVal ?? 0}%` }} />
         </div>
       </div>
     </div>
@@ -119,18 +119,18 @@ function PlayerSide({ id, name, ioc, rank, rating, won = false, align = "left" }
 }) {
   return (
     <div className={align === "right" ? "text-right" : "text-left"}>
-      <div className="text-[11px] uppercase tracking-[0.08em] text-white/30">
+      <div className="text-[11px] uppercase tracking-[0.08em] text-fg/40">
         {won ? "Winner" : "Runner-up"}
       </div>
       <Link
         href={`/player/${id}`}
-        className={`mt-1.5 block text-[20px] tracking-tight transition-colors hover:text-white/70 ${
-          won ? "text-white" : "text-white/60"
+        className={`mt-1.5 block text-[20px] tracking-tight transition-colors hover:text-fg/70 ${
+          won ? "text-fg" : "text-fg/60"
         }`}
       >
         {flagEmoji(ioc)} {name}
       </Link>
-      <div className="mt-1 text-[13px] text-white/30">{rank != null ? `No. ${rank}` : "Unranked"}</div>
+      <div className="mt-1 text-[13px] text-fg/40">{rank != null ? `No. ${rank}` : "Unranked"}</div>
       <div className="mt-3"><RatingBadge rating={rating} /></div>
     </div>
   );

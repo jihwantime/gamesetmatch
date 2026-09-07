@@ -20,10 +20,10 @@ export default function Nav({ overlay = false }: { overlay?: boolean }) {
             href={t.href}
             className={`text-[15px] tracking-tight transition-colors ${
               active
-                ? "text-white"
+                ? (overlay ? "text-white" : "text-fg")
                 : overlay
                   ? "text-white/70 hover:text-white"
-                  : "text-white/50 hover:text-white/90"
+                  : "text-fg/55 hover:text-fg"
             }`}
           >
             {t.label}

@@ -5,21 +5,22 @@
   --font-sf: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue",
     Inter, system-ui, sans-serif;
 
-  /* Win/loss pair, validated for colour-vision separation against --color-ink.
-     Both always ship alongside a text label, never colour alone. */
+  /* Win/loss pair, validated for colour-vision separation against the page
+     surface in both light and dark. Always paired with a text label, so
+     colour is never the only signal. */
   --color-win: #2a9d4e;
   --color-loss: #ff453a;
 
-  --color-ink: #08080a;
-  --color-panel: #131316;
+  --color-ink: #fbfbfd;   /* page surface */
+  --color-fg: #1d1d1f;    /* primary ink */
 }
 
 :root {
-  color-scheme: dark;
+  color-scheme: light;
 }
 
 body {
-  @apply bg-ink text-white/80 antialiased;
+  @apply bg-ink text-fg/80 antialiased;
   font-family: var(--font-sf);
 }
 

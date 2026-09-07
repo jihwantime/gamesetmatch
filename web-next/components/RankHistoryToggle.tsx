@@ -12,9 +12,9 @@ export default function RankHistoryToggle({ history }: { history: RankPoint[] })
     <div className="mt-10">
       <button
         onClick={() => setOpen((s) => !s)}
-        className="text-[14px] tracking-tight text-white/45 transition-colors hover:text-white"
+        className="text-[14px] tracking-tight text-fg/50 transition-colors hover:text-fg"
       >
-        {open ? "Hide ranking history" : "Ranking history"} <span className="text-white/30">{open ? "▴" : "▾"}</span>
+        {open ? "Hide ranking history" : "Ranking history"} <span className="text-fg/40">{open ? "▴" : "▾"}</span>
       </button>
       {open && (
         <div className="mt-6">
