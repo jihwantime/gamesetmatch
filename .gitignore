@@ -16,3 +16,7 @@ __pycache__/
 web-next/.env
 web-next/.next/
 web-next/node_modules/
+
+# Vendored agent/skill docs auto-installed by tooling (regenerated on demand)
+web-next/.agents/skills/
+web-next/.claude/skills/
