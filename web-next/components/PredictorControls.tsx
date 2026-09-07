@@ -2,7 +2,6 @@
 
 import { useEffect, useRef, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import SearchIcon from "./SearchIcon";
 import { flagEmoji } from "@/lib/format";
 
 type Pick = { id: number; full_name: string; ioc: string | null };
@@ -86,19 +85,19 @@ function PlayerPicker({
   return (
     <div ref={boxRef} className="relative">
       <div
-        className="flex items-center gap-2.5 border-b border-white/[0.16] pb-2 transition-colors focus-within:border-white/45"
+        className="relative flex items-center border-b border-white/[0.16] pb-2 transition-colors focus-within:border-white/45"
       >
-        {selected ? (
-          <span className="text-[17px]">{flagEmoji(selected.ioc)}</span>
-        ) : (
-          <SearchIcon className="h-4 w-4 shrink-0 text-white/35" />
+        {selected && (
+          <span className="pointer-events-none absolute left-0 text-[17px]">
+            {flagEmoji(selected.ioc)}
+          </span>
         )}
         <input
           value={q}
           onChange={(e) => setQ(e.target.value)}
           onFocus={() => results.length > 0 && setOpen(true)}
           placeholder="Search a player…"
-          className="w-full bg-transparent text-[17px] tracking-tight text-white placeholder:text-[15px] placeholder:text-white/35 focus:outline-none"
+          className="w-full bg-transparent text-center text-[17px] tracking-tight text-white placeholder:text-[15px] placeholder:text-white/35 focus:outline-none"
         />
       </div>
       {open && results.length > 0 && (

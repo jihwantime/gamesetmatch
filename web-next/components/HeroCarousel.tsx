@@ -73,15 +73,6 @@ export default function HeroCarousel({ onChange }: { onChange?: (hero: Hero) => 
               priority={i === 0}
               sizes="100vw"
               className="object-cover"
-              style={
-                reduced
-                  ? undefined
-                  : {
-                      // slow drift so a still frame doesn't feel dead
-                      transform: active ? "scale(1.06)" : "scale(1)",
-                      transition: `transform ${HOLD_MS + FADE_MS}ms linear`,
-                    }
-              }
             />
           </div>
         );
