@@ -1,0 +1,134 @@
+// GameSetMatch — PostgreSQL schema (port of the Cloudflare D1 schema).
+// Field names stay snake_case in the database (@map) while the Prisma client
+// exposes camelCase, which is the usual convention on this stack.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+// Prisma 7: the connection URL lives in prisma.config.ts (for migrate) and is
+// passed to PrismaClient via a driver adapter (see lib/prisma.ts).
+datasource db {
+  provider = "postgresql"
+}
+
+model Player {
+  id        Int     @id
+  firstName String  @map("first_name")
+  lastName  String  @map("last_name")
+  fullName  String  @map("full_name")
+  hand      String?
+  dob       Int?
+  ioc       String?
+  height    Int?
+
+  wins         Match[]       @relation("winner")
+  losses       Match[]       @relation("loser")
+  rankings     Ranking[]
+  liveRanking  LiveRanking?
+  elo          PlayerElo?
+
+  @@index([fullName])
+  @@map("players")
+}
+
+model Match {
+  id           Int     @id @default(autoincrement())
+  tourneyId    String  @map("tourney_id")
+  tourneyName  String  @map("tourney_name")
+  surface      String?
+  drawSize     Int?    @map("draw_size")
+  tourneyLevel String? @map("tourney_level")
+  tourneyDate  Int     @map("tourney_date")
+  matchNum     Int     @map("match_num")
+  winnerId     Int     @map("winner_id")
+  loserId      Int     @map("loser_id")
+  score        String?
+  bestOf       Int?    @map("best_of")
+  round        String?
+  minutes      Int?
+
+  wAce      Int? @map("w_ace")
+  wDf       Int? @map("w_df")
+  wSvpt     Int? @map("w_svpt")
+  w1stIn    Int? @map("w_1st_in")
+  w1stWon   Int? @map("w_1st_won")
+  w2ndWon   Int? @map("w_2nd_won")
+  wSvGms    Int? @map("w_sv_gms")
+  wBpSaved  Int? @map("w_bp_saved")
+  wBpFaced  Int? @map("w_bp_faced")
+  lAce      Int? @map("l_ace")
+  lDf       Int? @map("l_df")
+  lSvpt     Int? @map("l_svpt")
+  l1stIn    Int? @map("l_1st_in")
+  l1stWon   Int? @map("l_1st_won")
+  l2ndWon   Int? @map("l_2nd_won")
+  lSvGms    Int? @map("l_sv_gms")
+  lBpSaved  Int? @map("l_bp_saved")
+  lBpFaced  Int? @map("l_bp_faced")
+
+  winnerRank       Int?   @map("winner_rank")
+  winnerRankPoints Int?   @map("winner_rank_points")
+  loserRank        Int?   @map("loser_rank")
+  loserRankPoints  Int?   @map("loser_rank_points")
+  winnerRating     Float? @map("winner_rating")
+  loserRating      Float? @map("loser_rating")
+
+  winner Player @relation("winner", fields: [winnerId], references: [id])
+  loser  Player @relation("loser", fields: [loserId], references: [id])
+
+  @@unique([tourneyId, matchNum])
+  @@index([winnerId, tourneyDate])
+  @@index([loserId, tourneyDate])
+  @@index([tourneyDate])
+  @@map("matches")
+}
+
+model Ranking {
+  rankingDate Int  @map("ranking_date")
+  rank        Int
+  playerId    Int  @map("player_id")
+  points      Int?
+
+  player Player @relation(fields: [playerId], references: [id])
+
+  @@id([rankingDate, rank, playerId])
+  @@index([playerId, rankingDate])
+  @@index([rankingDate, rank])
+  @@map("rankings")
+}
+
+/// Current ATP top 20 (Wikipedia, weekly). Deliberately separate from `rankings`:
+/// ranking points are a rolling 52-week total, so weeks must never be blended.
+model LiveRanking {
+  rank     Int  @id
+  playerId Int  @unique @map("player_id")
+  points   Int?
+  asOf     Int  @map("as_of")
+
+  player Player @relation(fields: [playerId], references: [id])
+
+  @@map("live_rankings")
+}
+
+model PlayerElo {
+  playerId  Int    @id @map("player_id")
+  elo       Float
+  eloHard   Float? @map("elo_hard")
+  eloClay   Float? @map("elo_clay")
+  eloGrass  Float? @map("elo_grass")
+  eloCarpet Float? @map("elo_carpet")
+  matches   Int?
+  peakElo   Float? @map("peak_elo")
+
+  player Player @relation(fields: [playerId], references: [id])
+
+  @@map("player_elo")
+}
+
+model Meta {
+  key   String @id
+  value String
+
+  @@map("meta")
+}
