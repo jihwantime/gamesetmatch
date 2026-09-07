@@ -52,10 +52,10 @@ export default function HeroStage({
               style={{ animationDuration: "900ms" }}
             >
               <div className="font-sf text-[13px] font-medium tracking-tight text-white/85">
-                {hero?.venue ?? " "}
+                {hero?.label ?? " "}
               </div>
               <div className="font-sf text-[12px] tracking-tight text-white/45">
-                {hero?.place ?? " "}
+                {hero?.detail ?? " "}
               </div>
             </div>
             <a

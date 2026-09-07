@@ -68,7 +68,7 @@ export default function HeroCarousel({ onChange }: { onChange?: (hero: Hero) => 
           >
             <Image
               src={hero.src}
-              alt={`${hero.venue}, ${hero.place}`}
+              alt={`${hero.label} — ${hero.detail}`}
               fill
               priority={i === 0}
               sizes="100vw"
@@ -90,13 +90,13 @@ export default function HeroCarousel({ onChange }: { onChange?: (hero: Hero) => 
       {/* Scrim. Three layers: an overall damp, a vertical gradient that anchors
           the header and the caption, and a soft radial pool behind the centre
           text so the headline stays legible over bright, busy frames. */}
-      <div className="absolute inset-0 bg-black/30" />
+      <div className="absolute inset-0 bg-black/20" />
       <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-transparent to-black/80" />
       <div
         className="absolute inset-0"
         style={{
           background:
-            "radial-gradient(ellipse 70% 55% at 50% 45%, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0.25) 45%, rgba(0,0,0,0) 75%)",
+            "radial-gradient(ellipse 70% 55% at 50% 45%, rgba(0,0,0,0.45) 0%, rgba(0,0,0,0.2) 45%, rgba(0,0,0,0) 75%)",
         }}
       />
     </div>
