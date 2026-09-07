@@ -5,6 +5,10 @@ import ScrollReveal from "@/components/ScrollReveal";
 import { getLeaderboard } from "@/lib/queries";
 import { flagEmoji, formatDate } from "@/lib/format";
 
+// Regenerate hourly so the page reflects database updates instead of
+// being frozen at build time.
+export const revalidate = 3600;
+
 // Server Component: the top-10 board is fetched on the server and rendered into
 // the HTML, so it is present for crawlers and on first paint.
 export default async function Home() {

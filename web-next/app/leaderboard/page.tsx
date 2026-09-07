@@ -3,6 +3,10 @@ import RatingBadge from "@/components/RatingBadge";
 import { getLeaderboard, type BoardRow } from "@/lib/queries";
 import { flagEmoji, formatDate } from "@/lib/format";
 
+// Regenerate hourly so the page reflects database updates instead of
+// being frozen at build time.
+export const revalidate = 3600;
+
 export const metadata = {
   title: "ATP Rankings — GameSetMatch",
   description: "Current ATP top 20 plus the full top 100 archive snapshot, with ML form ratings.",
