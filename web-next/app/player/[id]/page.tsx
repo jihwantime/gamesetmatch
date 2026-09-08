@@ -5,8 +5,10 @@ import RatingBadge from "@/components/RatingBadge";
 import WinLossBar from "@/components/WinLossBar";
 import RankHistoryToggle from "@/components/RankHistoryToggle";
 import MatchFilters from "@/components/MatchFilters";
+import PlayerAvatar from "@/components/PlayerAvatar";
 import { getPlayerMatches, getPlayerProfile, getRankHistory } from "@/lib/queries";
 import { ageFromDob, flagEmoji, formatDate } from "@/lib/format";
+import { playerPhoto } from "@/lib/playerPhotos";
 
 type Params = { params: Promise<{ id: string }>; searchParams: Promise<Record<string, string>> };
 
@@ -41,6 +43,7 @@ export default async function PlayerPage({ params, searchParams }: Params) {
   const totalPages = Math.max(1, Math.ceil(matchPage.total / matchPage.pageSize));
   const lastTen = recent.matches.slice(0, 10).reverse();
   const lastTenWins = lastTen.filter((m) => m.result === "W").length;
+  const photo = playerPhoto(id);
 
   const bio = [
     age != null ? `Age ${age}` : null,
@@ -50,25 +53,30 @@ export default async function PlayerPage({ params, searchParams }: Params) {
 
   return (
     <div className="mx-auto max-w-3xl px-6 py-16">
-      <header>
-        <div className="flex items-center gap-2 text-[13px] text-fg/45">
-          <span>{flagEmoji(profile.ioc)}</span>
-          <span>{profile.ioc}</span>
-          {profile.latest_rank != null && (
-            <>
-              <span className="text-fg/30">·</span>
-              <span>World No. {profile.latest_rank}</span>
-            </>
-          )}
+      {/* Portrait sits on the column's left edge so it lines up with the stat
+          row and the match list below it, rather than hanging into the margin. */}
+      <header className="flex items-center gap-5 sm:gap-6">
+        <PlayerAvatar id={id} name={profile.fullName} />
+        <div className="min-w-0">
+          <div className="flex items-center gap-2 text-[13px] text-fg/45">
+            <span>{flagEmoji(profile.ioc)}</span>
+            <span>{profile.ioc}</span>
+            {profile.latest_rank != null && (
+              <>
+                <span className="text-fg/30">·</span>
+                <span>World No. {profile.latest_rank}</span>
+              </>
+            )}
+          </div>
+          <h1 className="mt-2 text-[32px] font-semibold leading-[1.05] tracking-[-0.035em] text-fg sm:text-[44px]">
+            {profile.fullName}
+          </h1>
+          <p className="mt-3 text-[15px] text-fg/50">
+            {bio.join(" · ")}
+            {bio.length > 0 && " · "}
+            Active {formatDate(profile.first_match)} – {formatDate(profile.last_match)}
+          </p>
         </div>
-        <h1 className="mt-2 text-[44px] font-semibold leading-[1.05] tracking-[-0.035em] text-fg">
-          {profile.fullName}
-        </h1>
-        <p className="mt-3 text-[15px] text-fg/50">
-          {bio.join(" · ")}
-          {bio.length > 0 && " · "}
-          Active {formatDate(profile.first_match)} – {formatDate(profile.last_match)}
-        </p>
       </header>
 
       {/* Career figures as a quiet stat row rather than boxed cards. */}
@@ -149,6 +157,19 @@ export default async function PlayerPage({ params, searchParams }: Params) {
           )}
         </aside>
       </div>
+
+      {photo?.credit && (
+        <p className="mt-16 border-t border-fg/[0.08] pt-6 text-[11px] text-fg/35">
+          Portrait:{" "}
+          <a
+            href={photo.source ?? undefined}
+            className="underline decoration-fg/20 underline-offset-2 transition-colors hover:text-fg/60"
+          >
+            {photo.credit}
+          </a>
+          {photo.license && ` · ${photo.license}`} · via Wikimedia Commons
+        </p>
+      )}
     </div>
   );
 }
