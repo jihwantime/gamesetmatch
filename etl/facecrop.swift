@@ -44,14 +44,17 @@ if let face = faces.max(by: { $0.boundingBox.width * $0.boundingBox.height
     let fy = (1 - b.midY) * H
     let faceH = b.height * H
 
-    // Let the face take up ~46% of the frame: tight enough to read at 44px,
-    // loose enough to keep hair and shoulders in.
-    var side = faceH / 0.46
+    // Let the face take up ~34% of the frame. Tighter than this and the crop
+    // clips the top of the head, which reads as abrupt in a circle; this
+    // leaves clear headroom and gets the shoulders in.
+    var side = faceH / 0.34
     side = min(side, min(W, H))
 
-    // Sit the eyeline above centre rather than dead centre.
+    // Sit the eyeline above centre rather than dead centre. Vision's box stops
+    // at the hairline, so this has to allow for the cap almost every player is
+    // wearing -- 0.42 leaves room above the face but not above the hat.
     var originX = fx - side / 2
-    var originY = fy - side * 0.42
+    var originY = fy - side * 0.46
 
     originX = max(0, min(originX, W - side))
     originY = max(0, min(originY, H - side))
