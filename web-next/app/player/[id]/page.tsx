@@ -55,7 +55,7 @@ export default async function PlayerPage({ params, searchParams }: Params) {
     <div className="mx-auto max-w-3xl px-6 py-16">
       {/* Portrait sits on the column's left edge so it lines up with the stat
           row and the match list below it, rather than hanging into the margin. */}
-      <header className="flex items-center gap-5 sm:gap-6">
+      <header className="flex items-center gap-5 sm:gap-7">
         <PlayerAvatar id={id} name={profile.fullName} />
         <div className="min-w-0">
           <div className="flex items-center gap-2 text-[13px] text-fg/45">
@@ -68,7 +68,7 @@ export default async function PlayerPage({ params, searchParams }: Params) {
               </>
             )}
           </div>
-          <h1 className="mt-2 text-[32px] font-semibold leading-[1.05] tracking-[-0.035em] text-fg sm:text-[44px]">
+          <h1 className="mt-2 text-[30px] font-semibold leading-[1.05] tracking-[-0.035em] text-fg sm:text-[44px]">
             {profile.fullName}
           </h1>
           <p className="mt-3 text-[15px] text-fg/50">
