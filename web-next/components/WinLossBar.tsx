@@ -1,5 +1,5 @@
-import { WIN_COLOR } from "@/lib/format";
-
+// Thin single-fill bar on a recessive track; the numbers beside it do the
+// precise work, the bar just gives shape to the comparison.
 export default function WinLossBar({
   label,
   wins,
@@ -13,19 +13,19 @@ export default function WinLossBar({
   const winPct = total > 0 ? (wins / total) * 100 : 0;
   return (
     <div>
-      <div className="mb-1 flex items-baseline justify-between text-xs">
-        <span className="text-slate-400">{label}</span>
-        <span className="tabular-nums text-slate-300">
-          {wins}W <span className="text-slate-500">{losses}L</span>{" "}
-          {total > 0 && <span className="font-semibold text-win">{winPct.toFixed(0)}%</span>}
+      <div className="mb-2 flex items-baseline justify-between">
+        <span className="text-[14px] tracking-tight text-fg/70">{label}</span>
+        <span className="text-[13px] tabular-nums text-fg/50">
+          {wins}–{losses}
+          <span className="ml-2 text-fg/80">{winPct.toFixed(0)}%</span>
         </span>
       </div>
       <div
-        className="h-2 overflow-hidden rounded-full bg-white/5"
+        className="h-1 overflow-hidden rounded-full bg-fg/[0.07]"
         role="img"
         aria-label={`${label}: ${wins} wins, ${losses} losses`}
       >
-        <div className="h-full rounded-full" style={{ width: `${winPct}%`, background: WIN_COLOR }} />
+        <div className="h-full rounded-full bg-fg/70" style={{ width: `${winPct}%` }} />
       </div>
     </div>
   );

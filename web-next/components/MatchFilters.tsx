@@ -6,8 +6,8 @@ const SURFACES = ["Hard", "Clay", "Grass", "Carpet"];
 const THIS_YEAR = new Date().getFullYear();
 const YEARS = Array.from({ length: THIS_YEAR - 1999 }, (_, i) => THIS_YEAR - i);
 
-// Writes the filter into the URL and lets the server re-render the page, so a
-// filtered match list is a real, shareable address.
+// Filters write to the URL and the server re-renders, so a filtered match list
+// is a real, shareable address.
 export default function MatchFilters({ surface, year }: { surface: string; year: string }) {
   const router = useRouter();
   const pathname = usePathname();
@@ -17,40 +17,39 @@ export default function MatchFilters({ surface, year }: { surface: string; year:
     const next = new URLSearchParams(params.toString());
     if (value) next.set(key, value);
     else next.delete(key);
-    next.delete("page"); // any filter change returns to page 1
+    next.delete("page");
     router.push(`${pathname}?${next}`);
   };
 
   return (
-    <>
-      <Select label="Surface" value={surface} onChange={(v) => set("surface", v)}
-              options={[{ value: "", label: "All" }, ...SURFACES.map((s) => ({ value: s, label: s }))]} />
-      <Select label="Season" value={year} onChange={(v) => set("year", v)}
-              options={[{ value: "", label: "All" }, ...YEARS.map((y) => ({ value: String(y), label: String(y) }))]} />
-    </>
+    <div className="flex items-center gap-5">
+      <Select value={surface} onChange={(v) => set("surface", v)}
+        options={[{ value: "", label: "All surfaces" }, ...SURFACES.map((s) => ({ value: s, label: s }))]} />
+      <Select value={year} onChange={(v) => set("year", v)}
+        options={[{ value: "", label: "All years" }, ...YEARS.map((y) => ({ value: String(y), label: String(y) }))]} />
+    </div>
   );
 }
 
 function Select({
-  label, value, options, onChange,
+  value, options, onChange,
 }: {
-  label: string; value: string; options: { value: string; label: string }[]; onChange: (v: string) => void;
+  value: string; options: { value: string; label: string }[]; onChange: (v: string) => void;
 }) {
   return (
-    <label className="flex cursor-pointer items-center gap-1 rounded-full bg-card px-4 py-1.5 text-sm text-slate-300">
-      <span className="text-slate-500">{label}:</span>
+    <div className="relative">
       <select
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="cursor-pointer appearance-none bg-transparent pr-1 font-semibold text-slate-200 focus:outline-none"
+        className="cursor-pointer appearance-none border-b border-fg/[0.18] bg-transparent pb-1 pl-0 pr-5 text-[13px] tracking-tight text-fg/60 transition-colors hover:border-fg/42 hover:text-fg focus:outline-none"
       >
         {options.map((o) => (
-          <option key={o.value} value={o.value} className="bg-card">
+          <option key={o.value} value={o.value} className="bg-white text-fg">
             {o.label}
           </option>
         ))}
       </select>
-      <span className="text-xs text-slate-500">▾</span>
-    </label>
+      <span className="pointer-events-none absolute right-0 top-1/2 -translate-y-[60%] text-[9px] text-fg/42">▾</span>
+    </div>
   );
 }

@@ -5,26 +5,20 @@ import { flagEmoji, formatDate, LEVEL_CHIP, parseSets } from "@/lib/format";
 
 function SetScores({ m }: { m: MatchListItem }) {
   const sets = parseSets(m.score, m.result === "W");
-  if (!sets) return <span className="text-xs text-slate-500">{m.score ?? "—"}</span>;
-  const accent = m.result === "W" ? "text-win" : "text-loss";
+  if (!sets) return <span className="text-[13px] text-fg/42">{m.score ?? "—"}</span>;
   return (
-    <div className="flex items-center gap-1.5">
+    <div className="flex items-center gap-2 tabular-nums">
       {sets.map((s, i) => (
-        <div
-          key={i}
-          className="flex w-7 flex-col items-center rounded-lg bg-card-2 py-1 font-display text-base font-semibold leading-tight"
-        >
-          <span className={s.won ? accent : "text-slate-200"}>
-            {s.mine}
-            {s.tb != null && !s.won && <sup className="text-[9px] text-slate-500">{s.tb}</sup>}
-          </span>
-          <span className="text-slate-400">
-            {s.theirs}
-            {s.tb != null && s.won && <sup className="text-[9px] text-slate-500">{s.tb}</sup>}
-          </span>
-        </div>
+        <span key={i} className="text-[14px] leading-none">
+          <span className={s.won ? "text-fg" : "text-fg/45"}>{s.mine}</span>
+          <span className="text-fg/30">–</span>
+          <span className={s.won ? "text-fg/45" : "text-fg/70"}>{s.theirs}</span>
+          {s.tb != null && <sup className="ml-px text-[9px] text-fg/40">{s.tb}</sup>}
+        </span>
       ))}
-      {/RET/.test(m.score ?? "") && <span className="ml-1 text-[10px] uppercase text-slate-500">ret</span>}
+      {/RET/.test(m.score ?? "") && (
+        <span className="text-[10px] uppercase tracking-wide text-fg/40">ret</span>
+      )}
     </div>
   );
 }
@@ -34,52 +28,42 @@ export default function MatchRow({ m }: { m: MatchListItem }) {
   return (
     <Link
       href={`/match/${m.id}`}
-      className="relative flex items-center gap-4 overflow-hidden rounded-2xl bg-card px-4 py-3.5 pl-5 transition hover:bg-card-2"
+      className="group grid grid-cols-[16px_1fr_auto] items-center gap-4 border-b border-fg/[0.1] py-4 transition-colors hover:border-fg/30 sm:grid-cols-[14px_minmax(150px,190px)_1fr_auto_auto]"
     >
-      <span className={`absolute inset-y-3 left-0 w-1 rounded-r-full ${win ? "bg-win" : "bg-loss"}`} />
-      <div className="w-20 shrink-0">
-        <span
-          className={`inline-block rounded-full px-3 py-1 font-display text-sm font-bold ${
-            win ? "bg-win text-black" : "bg-loss text-black"
-          }`}
-        >
-          {win ? "Win" : "Loss"}
-        </span>
-        <div className="mt-1.5 text-[11px] text-slate-500">{formatDate(m.tourney_date)}</div>
-      </div>
-      <div className="w-40 shrink-0">
-        <div className="flex items-center gap-2 text-[11px]">
-          {m.tourney_level && (
-            <span className="rounded-md bg-white/5 px-1.5 py-0.5 font-medium text-slate-400">
-              {LEVEL_CHIP[m.tourney_level] ?? m.tourney_level}
-            </span>
-          )}
-          {m.surface && <span className="font-medium text-sky-400">{m.surface}</span>}
+      {/* Result is a small dot plus the W/L letter — colour is never the only cue. */}
+      <span
+        className={`text-[12px] font-semibold ${win ? "text-win" : "text-loss"}`}
+        aria-label={win ? "Win" : "Loss"}
+      >
+        {win ? "W" : "L"}
+      </span>
+
+      <div className="hidden min-w-0 sm:block">
+        <div className="truncate text-[14px] tracking-tight text-fg/85">{m.tourney_name}</div>
+        <div className="mt-0.5 truncate whitespace-nowrap text-[12px] text-fg/42">
+          {formatDate(m.tourney_date)}
+          {m.tourney_level && ` · ${LEVEL_CHIP[m.tourney_level] ?? m.tourney_level}`}
         </div>
-        <div className="mt-1 truncate font-display text-lg font-semibold leading-tight text-white">
-          {m.tourney_name}
-        </div>
-        <div className="text-[11px] text-slate-500">{m.round}</div>
       </div>
-      <div className="min-w-0 flex-1">
-        <div className="text-[11px] text-slate-500">{win ? "defeated" : "lost to"}</div>
-        <div className="truncate font-display text-lg font-semibold leading-tight text-white">
+
+      <div className="min-w-0">
+        <div className="truncate text-[15px] tracking-tight text-fg/90 transition-colors group-hover:text-fg">
           {flagEmoji(m.opponent_ioc)} {m.opponent_name}
         </div>
-        <div className="text-[11px] text-slate-500">
-          {m.opponent_rank != null ? `#${m.opponent_rank}` : "unranked"}
-          {m.opponent_ioc && ` · ${m.opponent_ioc}`}
+        <div className="mt-0.5 text-[12px] text-fg/42">
+          {win ? "def." : "lost to"}
+          {m.opponent_rank != null && ` · #${m.opponent_rank}`}
+          <span className="sm:hidden"> · {m.round}</span>
         </div>
       </div>
-      <div className="hidden sm:block">
+
+      <div className="hidden justify-self-end sm:block">
         <SetScores m={m} />
       </div>
-      {m.minutes != null && (
-        <span className="hidden w-12 text-right text-xs tabular-nums text-slate-500 md:block">
-          🕐 {Math.floor(m.minutes / 60)}:{String(m.minutes % 60).padStart(2, "0")}
-        </span>
-      )}
-      <RatingBadge rating={m.rating} />
+
+      <div className="w-10 justify-self-end text-right">
+        <RatingBadge rating={m.rating} />
+      </div>
     </Link>
   );
 }

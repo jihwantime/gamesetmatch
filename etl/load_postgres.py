@@ -72,7 +72,28 @@ def main() -> None:
     matches = matches.rename(columns=MATCH_COLUMNS)
     matches.insert(0, "id", range(1, len(matches) + 1))
 
+    new_latest = int(matches["tourney_date"].max())
+
     with psycopg.connect(url) as conn, conn.cursor() as cur:
+        # This is a full reload, so whatever is about to be written is all the
+        # site will have. If an upstream source was unreachable this run, the
+        # rebuilt dataset can be *shorter* than what is already live -- that is
+        # how a tennis-data.co.uk outage silently dropped two months of matches
+        # once. Refuse to go backwards unless told to.
+        cur.execute("SELECT value FROM meta WHERE key = 'latest_match'")
+        row = cur.fetchone()
+        if row and row[0].isdigit() and new_latest < int(row[0]):
+            if os.environ.get("ALLOW_DATA_REGRESSION") != "1":
+                sys.exit(
+                    f"refusing to load: latest match would go backwards, "
+                    f"{row[0]} -> {new_latest}. An upstream source was probably "
+                    f"unavailable, so this build is missing matches the live "
+                    f"database already has. Re-run once the source is back, or "
+                    f"set ALLOW_DATA_REGRESSION=1 if this is deliberate."
+                )
+            print(f"WARNING: latest match going backwards {row[0]} -> {new_latest} "
+                  f"(ALLOW_DATA_REGRESSION=1)")
+
         print("truncating…")
         cur.execute(
             "TRUNCATE matches, rankings, live_rankings, player_elo, meta, players RESTART IDENTITY CASCADE"

@@ -18,6 +18,7 @@ weeks but are correct as of the date they are labelled with.
 """
 
 import re
+import time
 import unicodedata
 from datetime import date
 from pathlib import Path
@@ -130,12 +131,48 @@ def build_score(row: pd.Series) -> str:
     return score
 
 
+def fetch_with_retry(url: str, tries: int = 5) -> bytes | None:
+    """tennis-data.co.uk goes down for stretches at a time; a single 503 used
+    to take the whole weekly refresh with it. Returns None once the retries are
+    exhausted so the caller can decide whether that is fatal."""
+    delay = 5.0
+    last = None
+    for attempt in range(1, tries + 1):
+        try:
+            resp = requests.get(url, timeout=120)
+            resp.raise_for_status()
+            return resp.content
+        except requests.RequestException as e:
+            last = e
+            if attempt == tries:
+                break
+            print(f"  attempt {attempt}/{tries} failed ({e}); retrying in {delay:.0f}s")
+            time.sleep(delay)
+            delay *= 2
+    print(f"  all {tries} attempts failed: {last}")
+    return None
+
+
 def main() -> None:
     dest = DATA / f"tennis_data_{YEAR}.xlsx"
     print(f"fetch {URL}")
-    resp = requests.get(URL, timeout=120)
-    resp.raise_for_status()
-    dest.write_bytes(resp.content)
+    payload = fetch_with_retry(URL)
+    if payload is None:
+        if dest.exists():
+            # A previous download is cached; a stale top-up beats none at all,
+            # and it stops a full reload from dropping matches we already have.
+            print(f"::warning::{URL} is unreachable; reusing the cached "
+                  f"{dest.name} from a previous run")
+        else:
+            # The archive alone is a complete, consistent dataset -- it just
+            # stops a few weeks short. `::warning::` surfaces this on the
+            # Actions run page so it cannot rot unnoticed the way the missing
+            # lxml did.
+            print(f"::warning::current-season top-up skipped, {URL} is "
+                  "unreachable and nothing is cached; using the archive alone")
+            raise SystemExit(0)
+    else:
+        dest.write_bytes(payload)
 
     td = pd.read_excel(dest)
     index = build_name_index()
