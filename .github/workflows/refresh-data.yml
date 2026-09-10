@@ -46,6 +46,17 @@ jobs:
       - name: Download source data
         run: python etl/download.py
 
+      # Keeps the last good tennis-data.co.uk download so an outage falls back
+      # to it rather than rebuilding without the current season entirely. The
+      # run_id key always misses, so it saves a fresh copy every run while
+      # restore-keys pulls forward the most recent one.
+      - name: Restore last good current-season file
+        uses: actions/cache@v4
+        with:
+          path: etl/data/tennis_data_*.xlsx
+          key: tennis-data-${{ github.run_id }}
+          restore-keys: tennis-data-
+
       - name: Fetch current season results
         run: python etl/fetch_recent.py
 

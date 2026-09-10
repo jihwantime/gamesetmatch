@@ -158,14 +158,21 @@ def main() -> None:
     print(f"fetch {URL}")
     payload = fetch_with_retry(URL)
     if payload is None:
-        # The archive alone is a complete, consistent dataset -- it just stops a
-        # few weeks short. Losing the current-season top-up is worth a warning,
-        # not a failed refresh. `::warning::` surfaces it on the Actions run page
-        # so this cannot rot unnoticed the way the missing lxml did.
-        print(f"::warning::current-season top-up skipped, {URL} is unreachable; "
-              "refreshing from the archive alone")
-        raise SystemExit(0)
-    dest.write_bytes(payload)
+        if dest.exists():
+            # A previous download is cached; a stale top-up beats none at all,
+            # and it stops a full reload from dropping matches we already have.
+            print(f"::warning::{URL} is unreachable; reusing the cached "
+                  f"{dest.name} from a previous run")
+        else:
+            # The archive alone is a complete, consistent dataset -- it just
+            # stops a few weeks short. `::warning::` surfaces this on the
+            # Actions run page so it cannot rot unnoticed the way the missing
+            # lxml did.
+            print(f"::warning::current-season top-up skipped, {URL} is "
+                  "unreachable and nothing is cached; using the archive alone")
+            raise SystemExit(0)
+    else:
+        dest.write_bytes(payload)
 
     td = pd.read_excel(dest)
     index = build_name_index()
