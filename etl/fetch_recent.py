@@ -18,6 +18,7 @@ weeks but are correct as of the date they are labelled with.
 """
 
 import re
+import time
 import unicodedata
 from datetime import date
 from pathlib import Path
@@ -130,12 +131,30 @@ def build_score(row: pd.Series) -> str:
     return score
 
 
+def fetch_with_retry(url: str, tries: int = 5) -> bytes:
+    """tennis-data.co.uk goes down for short stretches; a single 503 used to
+    take the whole weekly refresh with it."""
+    delay = 5.0
+    last = None
+    for attempt in range(1, tries + 1):
+        try:
+            resp = requests.get(url, timeout=120)
+            resp.raise_for_status()
+            return resp.content
+        except requests.RequestException as e:
+            last = e
+            if attempt == tries:
+                break
+            print(f"  attempt {attempt}/{tries} failed ({e}); retrying in {delay:.0f}s")
+            time.sleep(delay)
+            delay *= 2
+    raise SystemExit(f"could not fetch {url} after {tries} attempts: {last}")
+
+
 def main() -> None:
     dest = DATA / f"tennis_data_{YEAR}.xlsx"
     print(f"fetch {URL}")
-    resp = requests.get(URL, timeout=120)
-    resp.raise_for_status()
-    dest.write_bytes(resp.content)
+    dest.write_bytes(fetch_with_retry(URL))
 
     td = pd.read_excel(dest)
     index = build_name_index()
