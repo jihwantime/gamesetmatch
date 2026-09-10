@@ -131,9 +131,10 @@ def build_score(row: pd.Series) -> str:
     return score
 
 
-def fetch_with_retry(url: str, tries: int = 5) -> bytes:
-    """tennis-data.co.uk goes down for short stretches; a single 503 used to
-    take the whole weekly refresh with it."""
+def fetch_with_retry(url: str, tries: int = 5) -> bytes | None:
+    """tennis-data.co.uk goes down for stretches at a time; a single 503 used
+    to take the whole weekly refresh with it. Returns None once the retries are
+    exhausted so the caller can decide whether that is fatal."""
     delay = 5.0
     last = None
     for attempt in range(1, tries + 1):
@@ -148,13 +149,23 @@ def fetch_with_retry(url: str, tries: int = 5) -> bytes:
             print(f"  attempt {attempt}/{tries} failed ({e}); retrying in {delay:.0f}s")
             time.sleep(delay)
             delay *= 2
-    raise SystemExit(f"could not fetch {url} after {tries} attempts: {last}")
+    print(f"  all {tries} attempts failed: {last}")
+    return None
 
 
 def main() -> None:
     dest = DATA / f"tennis_data_{YEAR}.xlsx"
     print(f"fetch {URL}")
-    dest.write_bytes(fetch_with_retry(URL))
+    payload = fetch_with_retry(URL)
+    if payload is None:
+        # The archive alone is a complete, consistent dataset -- it just stops a
+        # few weeks short. Losing the current-season top-up is worth a warning,
+        # not a failed refresh. `::warning::` surfaces it on the Actions run page
+        # so this cannot rot unnoticed the way the missing lxml did.
+        print(f"::warning::current-season top-up skipped, {URL} is unreachable; "
+              "refreshing from the archive alone")
+        raise SystemExit(0)
+    dest.write_bytes(payload)
 
     td = pd.read_excel(dest)
     index = build_name_index()
