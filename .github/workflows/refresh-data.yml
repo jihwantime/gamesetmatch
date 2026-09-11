@@ -73,9 +73,11 @@ jobs:
       - name: Build incremental SQL
         run: python etl/build_delta.py
 
+      # Guarded the same way as the Postgres load: refuses a delta that would
+      # move latest_match backwards, since the season rebuild deletes first.
       - name: Apply to production D1
         if: env.CLOUDFLARE_API_TOKEN != ''
-        run: npx wrangler d1 execute gamesetmatch --remote -y --file=etl/out/delta.sql
+        run: python etl/apply_d1_delta.py
 
       # The Vercel site reads Postgres, not D1, so it needs its own load or it
       # silently freezes at whatever was last pushed by hand. This is a full

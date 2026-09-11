@@ -23,6 +23,7 @@ shifts old values by hundredths, which is not worth 80k writes a week.
 """
 
 import argparse
+import json
 import sys
 from datetime import date, timedelta
 from pathlib import Path
@@ -134,6 +135,14 @@ def main() -> None:
 
     path = OUT / "delta.sql"
     path.write_text("".join(parts))
+    # Read by apply_d1_delta.py, which refuses to apply a delta that would move
+    # latest_match backwards -- the season rebuild above DELETEs before it
+    # re-inserts, so a build missing the current-season top-up would otherwise
+    # silently drop matches D1 already has.
+    (OUT / "delta_meta.json").write_text(json.dumps({
+        "latest_match": int(matches["tourney_date"].max()),
+        "season_matches": len(season),
+    }))
     rows = len(players) + len(season) + len(rank_new) + len(meta)
     print(
         f"wrote {path} — {len(players)} players, {len(season)} season matches, "
