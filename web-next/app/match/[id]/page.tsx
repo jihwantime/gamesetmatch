@@ -4,12 +4,10 @@ import RatingBadge from "@/components/RatingBadge";
 import { getHeadToHead, getMatch } from "@/lib/queries";
 import { flagEmoji, formatDate, LEVEL_NAMES, pct, ROUND_NAMES } from "@/lib/format";
 
-type M = Record<string, any>; // raw row: the stat columns are wide and dynamic
-
 export default async function MatchPage({ params }: { params: Promise<{ id: string }> }) {
   const id = Number((await params).id);
   if (!Number.isInteger(id)) notFound();
-  const match = (await getMatch(id)) as M | null;
+  const match = await getMatch(id);
   if (!match) notFound();
 
   const h2h = await getHeadToHead(match.winner_id, match.loser_id);
@@ -37,7 +35,7 @@ export default async function MatchPage({ params }: { params: Promise<{ id: stri
         {match.surface && <> · {match.surface}</>}
       </div>
       <div className="mt-1 text-center text-[13px] text-fg/35">
-        {ROUND_NAMES[match.round] ?? match.round} · {formatDate(match.tourney_date)}
+        {ROUND_NAMES[match.round ?? ""] ?? match.round ?? "—"} · {formatDate(match.tourney_date)}
         {match.minutes != null && (
           <> · {Math.floor(match.minutes / 60)}h {match.minutes % 60}m</>
         )}

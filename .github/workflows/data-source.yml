@@ -1,0 +1,39 @@
+name: Current-season data availability
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  source:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install pandas requests openpyxl
+      - name: Check HTTPS source and freshness
+        env:
+          REQUIRE_RECENT_DATA: '1'
+        run: |
+          python - <<'PY'
+          import sys
+          from pathlib import Path
+          sys.path.insert(0, 'etl')
+          import fetch_recent as source
+          payload = source.fetch_with_retry(source.URL)
+          if payload is None:
+              sys.exit('Upstream download unavailable; deployment freshness gate failed')
+          data = source.validate_season(payload)
+          source.require_fresh_source(data)
+          Path('etl/data').mkdir(exist_ok=True)
+          Path(f'etl/data/tennis_data_{source.YEAR}.xlsx').write_bytes(payload)
+          print('Latest match in source:', data['Date'].max().date())
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: current-season-source
+          path: etl/data/tennis_data_*.xlsx
+          retention-days: 7

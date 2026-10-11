@@ -100,6 +100,10 @@ export async function getPlayerProfile(id: number) {
   return { ...player, ...stats, ...rank, surfaces };
 }
 
+export async function getPlayerIdentity(id: number) {
+  return prisma.player.findUnique({ where: { id }, select: { id: true, fullName: true, ioc: true } });
+}
+
 export type MatchListItem = {
   id: number;
   tourney_name: string;
@@ -153,8 +157,25 @@ export async function getRankHistory(id: number) {
     WHERE player_id = ${id} ORDER BY ranking_date`;
 }
 
+export type MatchDetail = {
+  id: number; tourney_name: string; tourney_level: string | null;
+  tourney_date: number; round: string | null; surface: string | null;
+  minutes: number | null; score: string | null; winner_id: number; loser_id: number;
+  winner_name: string; loser_name: string; winner_ioc: string | null; loser_ioc: string | null;
+  winner_rank: number | null; loser_rank: number | null;
+  winner_rating: number | null; loser_rating: number | null;
+  w_ace: number | null; l_ace: number | null; w_df: number | null; l_df: number | null;
+  w_svpt: number | null; l_svpt: number | null;
+  w_1st_in: number | null; l_1st_in: number | null;
+  w_1st_won: number | null; l_1st_won: number | null;
+  w_2nd_won: number | null; l_2nd_won: number | null;
+  w_sv_gms: number | null; l_sv_gms: number | null;
+  w_bp_saved: number | null; l_bp_saved: number | null;
+  w_bp_faced: number | null; l_bp_faced: number | null;
+};
+
 export async function getMatch(id: number) {
-  const [match] = await prisma.$queryRaw<Record<string, unknown>[]>`
+  const [match] = await prisma.$queryRaw<MatchDetail[]>`
     SELECT m.*, w.full_name AS winner_name, w.ioc AS winner_ioc,
            l.full_name AS loser_name, l.ioc AS loser_ioc
     FROM matches m

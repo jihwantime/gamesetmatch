@@ -2,6 +2,13 @@ node_modules/
 dist/
 .wrangler/
 .dev.vars
+.env
+.env.*
+!.env.example
+!.env.production.example
+backups/
+.deployment/
+*.tsbuildinfo
 
 # raw dataset downloads and generated seed SQL (rebuildable via etl/)
 etl/data/

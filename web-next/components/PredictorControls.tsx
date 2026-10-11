@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { flagEmoji } from "@/lib/format";
+import { usePlayerSearch } from "@/lib/usePlayerSearch";
 
 type Pick = { id: number; full_name: string; ioc: string | null };
 
@@ -25,9 +26,9 @@ export default function PredictorControls({
   return (
     <>
       <div className="mt-6 grid grid-cols-[1fr_auto_1fr] items-center gap-4">
-        <PlayerPicker selected={p1} onSelect={(p) => setParam("p1", p ? String(p.id) : "")} />
+        <PlayerPicker key={p1?.id ?? "p1"} selected={p1} onSelect={(p) => setParam("p1", p ? String(p.id) : "")} />
         <span className="text-[13px] uppercase tracking-[0.1em] text-fg/35">vs</span>
-        <PlayerPicker selected={p2} onSelect={(p) => setParam("p2", p ? String(p.id) : "")} />
+        <PlayerPicker key={p2?.id ?? "p2"} selected={p2} onSelect={(p) => setParam("p2", p ? String(p.id) : "")} />
       </div>
       <div className="mx-auto mt-8 flex w-fit gap-8 border-b border-fg/[0.12]">
         {surfaces.map((s) => (
@@ -54,25 +55,9 @@ function PlayerPicker({
   selected: Pick | null; onSelect: (p: Pick | null) => void;
 }) {
   const [q, setQ] = useState(selected?.full_name ?? "");
-  const [results, setResults] = useState<Pick[]>([]);
+  const results = usePlayerSearch(selected && q === selected.full_name ? "" : q);
   const [open, setOpen] = useState(false);
   const boxRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    setQ(selected?.full_name ?? "");
-  }, [selected?.id, selected?.full_name]);
-
-  useEffect(() => {
-    if (selected && q === selected.full_name) return setResults([]);
-    if (q.trim().length < 2) return setResults([]);
-    const t = setTimeout(() => {
-      fetch(`/api/search?q=${encodeURIComponent(q.trim())}`)
-        .then((r) => r.json())
-        .then((r) => { setResults(r.players); setOpen(true); })
-        .catch(() => setResults([]));
-    }, 200);
-    return () => clearTimeout(t);
-  }, [q, selected]);
 
   useEffect(() => {
     const onClick = (e: MouseEvent) => {
@@ -94,7 +79,7 @@ function PlayerPicker({
         )}
         <input
           value={q}
-          onChange={(e) => setQ(e.target.value)}
+          onChange={(e) => { setQ(e.target.value); setOpen(true); }}
           onFocus={() => results.length > 0 && setOpen(true)}
           placeholder="Search a player…"
           className="w-full bg-transparent text-center text-[17px] tracking-tight text-fg placeholder:text-[15px] placeholder:text-fg/42 focus:outline-none"

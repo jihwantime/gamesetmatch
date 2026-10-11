@@ -27,15 +27,17 @@ export default function HeroCarousel({ onChange }: { onChange?: (hero: Hero) => 
 
   useEffect(() => {
     const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
-    setReduced(mq.matches);
     const onMq = (e: MediaQueryListEvent) => setReduced(e.matches);
     mq.addEventListener("change", onMq);
 
     // Reordering while every layer is still at opacity 0 is invisible, so the
     // first photo simply fades up out of black.
-    setOrder(shuffle(HEROES));
-    setMounted(true);
-    return () => mq.removeEventListener("change", onMq);
+    const frame = requestAnimationFrame(() => {
+      setReduced(mq.matches);
+      setOrder(shuffle(HEROES));
+      setMounted(true);
+    });
+    return () => { cancelAnimationFrame(frame); mq.removeEventListener("change", onMq); };
   }, []);
 
   useEffect(() => {

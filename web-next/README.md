@@ -9,6 +9,10 @@ https://gamesetmatch.jihwantime.workers.dev.
 
 ## Running it
 
+For a containerized setup with PostgreSQL and the ETL/ML pipeline, see
+[Docker instructions](../DOCKER.md). It supports both a production build and
+development with hot reload.
+
 ```sh
 # 1. PostgreSQL (once)
 brew install postgresql@17 && brew services start postgresql@17

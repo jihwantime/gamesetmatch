@@ -1,0 +1,68 @@
+name: gamesetmatch
+
+x-database-environment: &database-environment
+  DATABASE_URL: postgresql://gamesetmatch:${POSTGRES_PASSWORD:?Copy .env.example to .env first}@db:5432/gamesetmatch
+
+services:
+  db:
+    image: postgres:17-bookworm
+    environment:
+      POSTGRES_USER: gamesetmatch
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Copy .env.example to .env first}
+      POSTGRES_DB: gamesetmatch
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U gamesetmatch -d gamesetmatch"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    restart: unless-stopped
+
+  migrate:
+    build:
+      context: ./web-next
+      target: migrate
+    environment: *database-environment
+    depends_on:
+      db:
+        condition: service_healthy
+
+  web:
+    build:
+      context: ./web-next
+      target: runner
+    environment: *database-environment
+    ports:
+      - "127.0.0.1:${WEB_PORT:-3000}:3000"
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    init: true
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3000/api/health', {signal: AbortSignal.timeout(5000)}).then(r => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))"]
+      interval: 15s
+      timeout: 10s
+      start_period: 60s
+      retries: 5
+
+  # Run explicitly: docker compose --profile data run --rm etl
+  etl:
+    profiles: [data]
+    build:
+      context: .
+      dockerfile: etl/Dockerfile
+    environment: *database-environment
+    volumes:
+      - etl-data:/app/etl/data
+      - ml-output:/app/ml/out
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    init: true
+
+volumes:
+  postgres-data:
+  etl-data:
+  ml-output:

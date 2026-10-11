@@ -1,6 +1,6 @@
 import Link from "next/link";
 import PredictorControls from "@/components/PredictorControls";
-import { getPrediction } from "@/lib/queries";
+import { getPrediction, getPlayerIdentity } from "@/lib/queries";
 import { flagEmoji } from "@/lib/format";
 
 export const metadata = {
@@ -21,7 +21,12 @@ export default async function PredictPage({
   const p1 = Number(sp.p1) || null;
   const p2 = Number(sp.p2) || null;
   const surface = SURFACES.includes(sp.surface) ? sp.surface : "Hard";
-  const result = p1 && p2 && p1 !== p2 ? await getPrediction(p1, p2, surface) : null;
+  const [selected1, selected2, result] = await Promise.all([
+    p1 && Number.isSafeInteger(p1) ? getPlayerIdentity(p1) : null,
+    p2 && Number.isSafeInteger(p2) ? getPlayerIdentity(p2) : null,
+    p1 && p2 && Number.isSafeInteger(p1) && Number.isSafeInteger(p2) && p1 !== p2
+      ? getPrediction(p1, p2, surface) : null,
+  ]);
 
   const pct1 = result ? Math.round(result.p1.winProb * 100) : 0;
 
@@ -40,8 +45,8 @@ export default async function PredictPage({
       <PredictorControls
         surfaces={SURFACES}
         surface={surface}
-        p1={result ? { id: result.p1.playerId, full_name: result.p1.player.fullName, ioc: result.p1.player.ioc } : null}
-        p2={result ? { id: result.p2.playerId, full_name: result.p2.player.fullName, ioc: result.p2.player.ioc } : null}
+        p1={selected1 ? { id: selected1.id, full_name: selected1.fullName, ioc: selected1.ioc } : null}
+        p2={selected2 ? { id: selected2.id, full_name: selected2.fullName, ioc: selected2.ioc } : null}
       />
 
       {!result ? (

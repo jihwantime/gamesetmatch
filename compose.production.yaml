@@ -1,0 +1,43 @@
+name: ${GSM_PROJECT:-gamesetmatch-staging}
+
+services:
+  web:
+    image: ${WEB_IMAGE:?Set WEB_IMAGE to a release tag}
+    ports: !reset []
+    environment:
+      NODE_ENV: production
+    logging:
+      driver: json-file
+      options: {max-size: "10m", max-file: "3"}
+  migrate:
+    image: ${MIGRATE_IMAGE:?Set MIGRATE_IMAGE to a release tag}
+  db:
+    logging:
+      driver: json-file
+      options: {max-size: "10m", max-file: "3"}
+  etl:
+    environment:
+      REQUIRE_RECENT_DATA: ${REQUIRE_RECENT_DATA:-1}
+      MAX_SOURCE_AGE_DAYS: ${MAX_SOURCE_AGE_DAYS:-21}
+  proxy:
+    image: caddy:2
+    environment:
+      SITE_ADDRESS: ${SITE_ADDRESS:?Set your staging domain}
+      ACME_EMAIL: ${ACME_EMAIL:?Set an email for certificate notices}
+    ports:
+      - "${HTTP_PORT:-80}:80"
+      - "${HTTPS_PORT:-443}:443"
+    volumes:
+      - ./deploy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
+    depends_on:
+      web: {condition: service_healthy}
+    restart: unless-stopped
+    logging:
+      driver: json-file
+      options: {max-size: "10m", max-file: "3"}
+
+volumes:
+  caddy-data:
+  caddy-config:
