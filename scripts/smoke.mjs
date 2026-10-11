@@ -20,9 +20,9 @@ assert.ok(players.some(p => p.id === 103819 && p.full_name === "Roger Federer"))
 assert.ok(players.every(p => Number.isInteger(p.total_matches) && p.total_matches > 0));
 const short = await fetch(`${base}/api/search?q=F`);
 assert.deepEqual((await short.json()).players, []);
-await page("/", ["Every match.", "Roger Federer"]);
-await page("/leaderboard", ["Rankings", "Roger Federer", "Rafael Nadal"]);
-const profile = await page("/player/103819", ["Roger Federer", "Rafael Nadal"]);
+await page("/", ["Every match.", "Top ten"]);
+await page("/leaderboard", ["Rankings", "Top 100"]);
+const profile = await page("/player/103819", ["Roger Federer", "Matches"]);
 const matchId = profile.match(/href="\/match\/(\d+)"/)?.[1];
 assert.ok(matchId, "Player profile must link to a match");
 await page(`/match/${matchId}`, ["Roger Federer"]);

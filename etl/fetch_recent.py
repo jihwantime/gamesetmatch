@@ -203,14 +203,14 @@ def main() -> None:
             print(f"::warning::{URL} is unreachable; reusing the cached "
                   f"{dest.name} from a previous run")
         else:
+            if os.environ.get("REQUIRE_RECENT_DATA") == "1":
+                raise SystemExit(f"required current-season data unavailable at {URL}; database was not changed")
             # The archive alone is a complete, consistent dataset -- it just
             # stops a few weeks short. `::warning::` surfaces this on the
             # Actions run page so it cannot rot unnoticed the way the missing
             # lxml did.
             print(f"::warning::current-season top-up skipped, {URL} is "
                   "unreachable and nothing is cached; using the archive alone")
-            if os.environ.get("REQUIRE_RECENT_DATA") == "1":
-                raise SystemExit("required current-season data unavailable; database was not changed")
             raise SystemExit(0)
     else:
         try:
