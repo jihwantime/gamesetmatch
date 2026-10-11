@@ -42,6 +42,11 @@ and ranks but no serve stats, so they appear unrated ("—") until the archive c
 
 ## Local development
 
+For the **Next.js + PostgreSQL** app, Docker can run the web server, database,
+and data pipeline: see [DOCKER.md](DOCKER.md).
+
+The commands below run the Cloudflare version.
+
 ```sh
 npm install
 

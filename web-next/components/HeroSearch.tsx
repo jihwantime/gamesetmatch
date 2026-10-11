@@ -4,31 +4,19 @@ import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import SearchIcon from "./SearchIcon";
 import { flagEmoji } from "@/lib/format";
+import { usePlayerSearch } from "@/lib/usePlayerSearch";
 
 type Hit = { id: number; full_name: string; ioc: string | null; total_matches: number };
 
 // Chromeless over the photography: icon, caret, and a single hairline.
 export default function HeroSearch() {
   const [q, setQ] = useState("");
-  const [results, setResults] = useState<Hit[]>([]);
+  const results = usePlayerSearch(q);
   const [open, setOpen] = useState(false);
   const [active, setActive] = useState(0);
   const router = useRouter();
   const boxRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    if (q.trim().length < 2) {
-      setResults([]);
-      return;
-    }
-    const t = setTimeout(() => {
-      fetch(`/api/search?q=${encodeURIComponent(q.trim())}`)
-        .then((r) => r.json())
-        .then((r) => { setResults(r.players); setOpen(true); setActive(0); })
-        .catch(() => setResults([]));
-    }, 200);
-    return () => clearTimeout(t);
-  }, [q]);
 
   useEffect(() => {
     const onClick = (e: MouseEvent) => {
@@ -50,7 +38,7 @@ export default function HeroSearch() {
         <SearchIcon className="h-[19px] w-[19px] shrink-0 text-white/55" />
         <input
           value={q}
-          onChange={(e) => setQ(e.target.value)}
+          onChange={(e) => { setQ(e.target.value); setOpen(true); setActive(0); }}
           onFocus={() => results.length > 0 && setOpen(true)}
           onKeyDown={(e) => {
             if (!open || results.length === 0) return;

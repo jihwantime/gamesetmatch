@@ -1,0 +1,10 @@
+[Unit]
+Description=GameSetMatch PostgreSQL backup
+Requires=docker.service
+After=docker.service
+
+[Service]
+Type=oneshot
+WorkingDirectory=/opt/gamesetmatch
+ExecStart=/usr/bin/flock /run/lock/gamesetmatch-maintenance.lock /usr/bin/bash scripts/production.sh backup
+UMask=0077

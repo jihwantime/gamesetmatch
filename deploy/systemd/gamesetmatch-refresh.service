@@ -1,0 +1,11 @@
+[Unit]
+Description=GameSetMatch weekly data refresh
+Requires=docker.service
+After=docker.service
+
+[Service]
+Type=oneshot
+WorkingDirectory=/opt/gamesetmatch
+ExecStart=/usr/bin/flock /run/lock/gamesetmatch-maintenance.lock /usr/bin/bash scripts/production.sh refresh
+TimeoutStartSec=3600
+UMask=0077

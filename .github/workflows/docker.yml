@@ -1,0 +1,55 @@
+name: Docker
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  containers:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      POSTGRES_PASSWORD: gamesetmatch_ci
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: web-next/package-lock.json
+      - name: Lint Next.js
+        run: npm ci --prefix web-next && npm run lint --prefix web-next
+      - name: Validate production and development configuration
+        run: |
+          docker compose --profile data config --quiet
+          docker compose -f compose.yaml -f compose.dev.yaml config --quiet
+      - name: Build web, migrations, and data images
+        run: docker compose --profile data build
+      - name: Build development image
+        run: docker compose -f compose.yaml -f compose.dev.yaml build web
+      - name: Start production stack and check database-backed pages
+        run: |
+          # Restore the production target after building the development image.
+          docker compose build web
+          docker compose up -d --wait --wait-timeout 120
+          docker compose exec -T db psql -U gamesetmatch -d gamesetmatch -v ON_ERROR_STOP=1 < tests/smoke-fixture.sql
+          node scripts/smoke.mjs
+      - name: Download error and freshness tests
+        run: docker compose --profile data run --rm --no-deps etl python -m unittest discover -s etl -p 'test_*.py'
+      - name: Production configuration and backup restore check
+        run: |
+          cp .env.production.example .env.production
+          docker compose --env-file .env.production -f compose.yaml -f compose.production.yaml config --quiet
+          docker compose exec -T db pg_dump -U gamesetmatch -d gamesetmatch -Fc > /tmp/smoke.dump
+          docker compose exec -T db createdb -U gamesetmatch restore_check
+          docker compose exec -T db pg_restore -U gamesetmatch -d restore_check --exit-on-error < /tmp/smoke.dump
+          test "$(docker compose exec -T db psql -U gamesetmatch -d restore_check -Atc 'SELECT count(*) FROM matches')" = 1
+          docker compose exec -T db dropdb -U gamesetmatch restore_check
+      - name: Container logs
+        if: failure()
+        run: docker compose logs
+      - name: Clean up
+        if: always()
+        run: docker compose down -v

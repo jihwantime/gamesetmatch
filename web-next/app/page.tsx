@@ -1,11 +1,10 @@
 import HeroStage from "@/components/HeroStage";
 import { getLeaderboard } from "@/lib/queries";
-
-// Regenerate hourly so the page reflects database updates instead of
-// being frozen at build time.
-export const revalidate = 3600;
+import { connection } from "next/server";
 
 export default async function Home() {
+  // Query at request time so image builds don't need a running database.
+  await connection();
   const board = await getLeaderboard();
   const current = board.live ?? { entries: board.entries, as_of: board.date };
 

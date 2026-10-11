@@ -13,7 +13,7 @@ Usage:
 import io
 import os
 import sys
-from datetime import date
+from datetime import date, datetime
 from pathlib import Path
 
 import pandas as pd
@@ -51,6 +51,15 @@ def copy_df(cur, table: str, df: pd.DataFrame) -> None:
     print(f"  {table}: {len(df):,} rows")
 
 
+def require_recent_match(latest: int) -> None:
+    if os.environ.get("REQUIRE_RECENT_DATA") != "1":
+        return
+    age = (date.today() - datetime.strptime(str(latest), "%Y%m%d").date()).days
+    limit = int(os.environ.get("MAX_SOURCE_AGE_DAYS", "21"))
+    if age < 0 or age > limit:
+        raise ValueError(f"latest converted match is {age} days old (limit {limit}); database was not changed")
+
+
 def main() -> None:
     url = os.environ.get("DATABASE_URL")
     if not url:
@@ -73,6 +82,7 @@ def main() -> None:
     matches.insert(0, "id", range(1, len(matches) + 1))
 
     new_latest = int(matches["tourney_date"].max())
+    require_recent_match(new_latest)
 
     with psycopg.connect(url) as conn, conn.cursor() as cur:
         # This is a full reload, so whatever is about to be written is all the

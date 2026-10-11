@@ -1,10 +1,7 @@
 import RankTable from "@/components/RankTable";
 import { getLeaderboard } from "@/lib/queries";
 import { formatDate } from "@/lib/format";
-
-// Regenerate hourly so the page reflects database updates instead of
-// being frozen at build time.
-export const revalidate = 3600;
+import { connection } from "next/server";
 
 export const metadata = {
   title: "ATP Rankings — GameSetMatch",
@@ -12,6 +9,8 @@ export const metadata = {
 };
 
 export default async function LeaderboardPage() {
+  // Query at request time so image builds don't need a running database.
+  await connection();
   const { date, entries, live, updated } = await getLeaderboard();
 
   return (

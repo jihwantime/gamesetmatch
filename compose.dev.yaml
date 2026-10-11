@@ -1,0 +1,11 @@
+# Usage: docker compose -f compose.yaml -f compose.dev.yaml up --build
+services:
+  web:
+    build:
+      target: development
+    volumes:
+      - ./web-next:/app
+      - /app/node_modules
+      - /app/.next
+    environment:
+      NODE_ENV: development

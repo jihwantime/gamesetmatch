@@ -18,17 +18,20 @@ weeks but are correct as of the date they are labelled with.
 """
 
 import re
+import os
 import time
 import unicodedata
 from datetime import date
 from pathlib import Path
+from io import BytesIO
+from zipfile import BadZipFile
 
 import pandas as pd
 import requests
 
 DATA = Path(__file__).parent / "data"
 YEAR = date.today().year
-URL = f"http://www.tennis-data.co.uk/{YEAR}/{YEAR}.xlsx"
+URL = f"https://www.tennis-data.co.uk/{YEAR}/{YEAR}.xlsx"
 MAX_RANK = 300  # match build_seed.py's cap
 
 SACKMANN_COLS = [
@@ -144,6 +147,11 @@ def fetch_with_retry(url: str, tries: int = 5) -> bytes | None:
             return resp.content
         except requests.RequestException as e:
             last = e
+            # Retrying a forbidden or missing resource won't repair it.
+            status = e.response.status_code if e.response is not None else None
+            if status is not None and 400 <= status < 500 and status not in (408, 429):
+                print(f"  download refused ({status}): {url}")
+                return None
             if attempt == tries:
                 break
             print(f"  attempt {attempt}/{tries} failed ({e}); retrying in {delay:.0f}s")
@@ -153,10 +161,41 @@ def fetch_with_retry(url: str, tries: int = 5) -> bytes | None:
     return None
 
 
+def validate_season(payload: bytes) -> pd.DataFrame:
+    """Reject error pages, corrupt files and unexpected seasons before caching."""
+    td = pd.read_excel(BytesIO(payload))
+    required = {"Tournament", "Date", "Winner", "Loser", "Surface", "Series",
+                "Round", "Best of", "WRank", "LRank", "WPts", "LPts"}
+    missing = required - set(td.columns)
+    if missing or td.empty:
+        raise ValueError(f"invalid season workbook; missing columns: {sorted(missing)}")
+    td["Date"] = pd.to_datetime(td["Date"], errors="raise")
+    if td["Date"].isna().any() or not td["Date"].dt.year.eq(YEAR).all():
+        raise ValueError(f"workbook contains missing dates or matches outside {YEAR}")
+    if td["Date"].max().date() > date.today():
+        raise ValueError("workbook contains future matches")
+    return td
+
+
+def require_fresh_source(td: pd.DataFrame) -> None:
+    if os.environ.get("REQUIRE_RECENT_DATA") != "1":
+        return
+    max_age = int(os.environ.get("MAX_SOURCE_AGE_DAYS", "21"))
+    age = (date.today() - td["Date"].max().date()).days
+    if age > max_age:
+        raise ValueError(f"current-season source is {age} days old (limit {max_age}); refusing refresh")
+
+
 def main() -> None:
+    DATA.mkdir(parents=True, exist_ok=True)
     dest = DATA / f"tennis_data_{YEAR}.xlsx"
-    print(f"fetch {URL}")
-    payload = fetch_with_retry(URL)
+    source_file = os.environ.get("TENNIS_DATA_FILE")
+    if source_file:
+        print(f"validate operator-supplied workbook: {source_file}")
+        payload = Path(source_file).read_bytes()
+    else:
+        print(f"fetch {URL}")
+        payload = fetch_with_retry(URL)
     if payload is None:
         if dest.exists():
             # A previous download is cached; a stale top-up beats none at all,
@@ -170,11 +209,28 @@ def main() -> None:
             # lxml did.
             print(f"::warning::current-season top-up skipped, {URL} is "
                   "unreachable and nothing is cached; using the archive alone")
+            if os.environ.get("REQUIRE_RECENT_DATA") == "1":
+                raise SystemExit("required current-season data unavailable; database was not changed")
             raise SystemExit(0)
     else:
-        dest.write_bytes(payload)
+        try:
+            td = validate_season(payload)
+        except (ValueError, OSError, BadZipFile) as exc:
+            if source_file:
+                raise SystemExit(f"invalid operator-supplied workbook: {exc}") from exc
+            if not dest.exists():
+                raise SystemExit(f"invalid download and no cached workbook: {exc}") from exc
+            print(f"::warning::invalid download ({exc}); retaining last good workbook")
+            td = validate_season(dest.read_bytes())
+        else:
+            require_fresh_source(td)
+            pending = dest.with_suffix(".xlsx.tmp")
+            pending.write_bytes(payload)
+            pending.replace(dest)
 
-    td = pd.read_excel(dest)
+    if payload is None:
+        td = validate_season(dest.read_bytes())
+    require_fresh_source(td)
     index = build_name_index()
 
     # matches the archive already covers: (winner, loser) pairs with dates.
@@ -235,7 +291,9 @@ def main() -> None:
 
     out = pd.DataFrame(out_rows, columns=SACKMANN_COLS)
     out["match_num"] = out.groupby("tourney_id").cumcount() + 1
-    out.to_csv(DATA / "recent_matches.csv", index=False)
+    pending = DATA / "recent_matches.csv.tmp"
+    out.to_csv(pending, index=False)
+    pending.replace(DATA / "recent_matches.csv")
     print(f"kept {len(out)} recent matches ({skipped_dupes} already in the archive)")
     if unmatched:
         print(f"unmatched names ({len(unmatched)}): {sorted(unmatched)[:15]}")
